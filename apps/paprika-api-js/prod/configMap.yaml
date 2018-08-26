@@ -1,0 +1,7 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: paprika-api-js
+data:
+  NODE_ENV: production
+  LOG_LEVEL: debug

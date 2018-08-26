@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: paprika-api-js
+  labels:
+    app: paprika-api-js
+    role: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: paprika-api-js
+    role: backend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
