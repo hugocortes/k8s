@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: me
+  labels:
+    app: me
+    role: frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: me
+    role: frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 1313

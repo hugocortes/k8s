@@ -63,8 +63,8 @@ spec:
       serviceAccountName: traefik-ingress-controller
       terminationGracePeriodSeconds: 60
       hostNetwork: true
-      nodeSelector:
-        nginx-controller: "traefik"
+      # nodeSelector:
+      #   nginx-controller: "traefik"
       containers:
       - image: traefik
         name: traefik-ingress-lb

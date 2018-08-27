@@ -1,0 +1,7 @@
+bases:
+- ./../base
+resources:
+- service.yaml
+commonLabels:
+  arch: x86
+  env: local
