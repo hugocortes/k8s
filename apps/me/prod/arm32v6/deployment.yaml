@@ -7,6 +7,8 @@ spec:
     metadata:
       name: me
     spec:
+      nodeSelector:
+        arch: arm32v6
       containers:
       - name: me
         imagePullPolicy: Always
