@@ -15,3 +15,7 @@ spec:
     protocol: TCP
     port: 3000
     nodePort: 31000
+  - name: debug
+    protocol: TCP
+    port: 9229
+    nodePort: 31229
