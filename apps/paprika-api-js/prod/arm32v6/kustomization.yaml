@@ -8,4 +8,7 @@ resources:
 - ./../service.yaml
 commonLabels:
   env: prod
-  arch: x86
+  arch: arm32v6
+imageTags:
+- name: docker.io/hugocortes/paprika-api-js
+  newTag: arm32v6
