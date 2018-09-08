@@ -1,0 +1,74 @@
+---
+kind: DaemonSet
+apiVersion: extensions/v1beta1
+metadata:
+  name: kube-proxy-amd64
+  namespace: kube-system
+  labels:
+    k8s-app: kube-proxy
+spec:
+  selector:
+    matchLabels:
+      k8s-app: kube-proxy
+  template:
+    metadata:
+      creationTimestamp: 
+      labels:
+        k8s-app: kube-proxy
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ''
+    spec:
+      volumes:
+      - name: kube-proxy
+        configMap:
+          name: kube-proxy
+          defaultMode: 420
+      - name: xtables-lock
+        hostPath:
+          path: "/run/xtables.lock"
+          type: FileOrCreate
+      - name: lib-modules
+        hostPath:
+          path: "/lib/modules"
+          type: ''
+      containers:
+      - name: kube-proxy
+        image: k8s.gcr.io/kube-proxy-amd64:v1.11.2
+        command:
+        - "/usr/local/bin/kube-proxy"
+        - "--config=/var/lib/kube-proxy/config.conf"
+        resources: {}
+        volumeMounts:
+        - name: kube-proxy
+          mountPath: "/var/lib/kube-proxy"
+        - name: xtables-lock
+          mountPath: "/run/xtables.lock"
+        - name: lib-modules
+          readOnly: true
+          mountPath: "/lib/modules"
+        terminationMessagePath: "/dev/termination-log"
+        terminationMessagePolicy: File
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: true
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        beta.kubernetes.io/arch: amd64
+      serviceAccountName: kube-proxy
+      serviceAccount: kube-proxy
+      hostNetwork: true
+      securityContext: {}
+      schedulerName: default-scheduler
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - operator: Exists
+      priorityClassName: system-node-critical
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  templateGeneration: 1
+  revisionHistoryLimit: 10
