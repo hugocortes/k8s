@@ -52,8 +52,10 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: squash-server
+  namespace: squash
 - kind: ServiceAccount
   name: default
+  namespace: squash
 roleRef:
   kind: ClusterRole
   name: squash-crds
@@ -78,7 +80,7 @@ spec:
     spec:
       # For mixed arch k8s cluster
       nodeSelector:
-        arch: x86
+        beta.kubernetes.io/arch: amd64
       serviceAccountName: squash-server
       containers:
       - name: squash-server

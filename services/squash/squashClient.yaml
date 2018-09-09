@@ -17,7 +17,7 @@ spec:
     spec:
       # For mixed arch k8s cluster
       nodeSelector:
-        arch: x86
+        beta.kubernetes.io/arch: amd64
       hostPID: true
       containers:
       - name: squash-client
