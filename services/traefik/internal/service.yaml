@@ -1,0 +1,38 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: traefik-internal
+  namespace: kube-system
+  labels:
+    k8s-app: traefik-internal
+    traffic-type: internal
+spec:
+  selector:
+    k8s-app: traefik-internal
+  externalTrafficPolicy: Local
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      name: web
+    - protocol: TCP
+      port: 443
+      name: https
+  type: LoadBalancer
+  loadBalancerIP: 192.168.0.140
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: traefik-internal
+  namespace: kube-system
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: traefik-int.internal.hugocortes.me
+    http:
+      paths:
+      - backend:
+          serviceName: traefik-internal
+          servicePort: web
