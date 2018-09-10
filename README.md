@@ -36,7 +36,7 @@ Prereqs:
 7. Debugger will breakpoint on connect by default
 8. Ready to debug!
 
-## Cluster Setup
+## Multi-Arch Master Cluster Setup
 
 1. Install kubernetes
 2. `kubeadm init --pod-network-cidr 10.244.0.0/16`
@@ -74,7 +74,9 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 16. http://traefik-int.internal.hugocortes.me and https://k8s.internal.hugocortes.me will now be up although HTTPS certificates will be invalid as internal configuration does not validate https
 
-The following will only be for amd64 clusters
+### full amd64 cluster additional steps
+
+**The following steps are not guaranteed to work on clusters with arm nodes**
 
 17. Install squash server and client:
 ```
