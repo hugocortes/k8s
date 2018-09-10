@@ -47,7 +47,7 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 4. Master node, add `export KUBECONFIG=$HOME/.kube/config` to `~/.bashrc`
-5. If running a multi-arch cluster, install `kube-proxy` for architectures that do not match the master node. See [this](https://raw.githubusercontent.com/hugocortes/k8s/devel/services/kube-proxy/kube-proxy-amd64-slave.yaml) manifest for an example amd64 slave running on an ARM master cluster.
+5. If running a multi-arch cluster, install `kube-proxy` for architectures that do not match the master node. See [this](https://raw.githubusercontent.com/hugocortes/k8s/devel/services/arm-master/kube-proxy/kube-proxy-amd64-slave.yaml) manifest for an example amd64 slave running on an ARM master cluster.
 6. Add Flannel with multi-arch support
 - `kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml`
 7. Join other nodes by using:
@@ -73,3 +73,11 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 192.168.0.100 k8s.internal.hugocortes.me
 ```
 16. http://traefik-int.internal.hugocortes.me and https://k8s.internal.hugocortes.me will now be up although HTTPS certificates will be invalid as internal configuration does not validate https
+
+The following will only be for amd64 clusters
+
+17. Install squash server and client:
+```
+kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contrib/kubernetes/squash-server.yml
+kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contrib/kubernetes/squash-client.yml
+```
