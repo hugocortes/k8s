@@ -4,11 +4,9 @@ patches:
 - ./../configMap.yaml
 - ./../deployment.yaml
 resources:
-- ./../ingress.yaml
 - ./../service.yaml
 commonLabels:
   env: prod
-  arch: arm32v6
 imageTags:
 - name: docker.io/hugocortes/me
-  newTag: arm32v6
+  newTag: arm

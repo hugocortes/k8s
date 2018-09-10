@@ -4,8 +4,6 @@ patches:
 - ./../configMap.yaml
 - ./../deployment.yaml
 resources:
-- ./../ingress.yaml
 - ./../service.yaml
 commonLabels:
   env: prod
-  arch: x86

@@ -24,6 +24,13 @@ spec:
       containers:
       - name: me
         image: docker.io/hugocortes/me
+        resources:
+          limits:
+            cpu: 150m
+            memory: 20Mi
+          requests:
+            cpu: 50m
+            memory: 10Mi
         env:
         - name: PORT
           valueFrom:
