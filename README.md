@@ -53,8 +53,8 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 8. Allow `type: LoadBalancer` by using Metal-LB `kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml`
 9. Add the IP range to be used by load balancer `kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/metal-lb/configMap.yaml` (Change IP range 192.168.0.100-192.168.0.110 to reflect your router setup)
 10. Install the k8s dashboard
-ARM: `kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard-arm.yaml`
-AMD64: `kubectl apply -f https://github.com/kubernetes/dashboard/blob/master/src/deploy/recommended/kubernetes-dashboard.yaml`
+- ARM: `kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard-arm.yaml`
+- AMD64: `kubectl apply -f https://github.com/kubernetes/dashboard/blob/master/src/deploy/recommended/kubernetes-dashboard.yaml`
 11. Create a service account for k8s dashbaord: `kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/dashboard/rbac.yaml`
 12. Get token to be used in dashboard: `kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')`
 13. Create internal ingress controller Traefik: `kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/traefik/internal/manifest.yaml` (Change `loadBalancerIP` in Service to reflect your allocated load balancer IP range)
