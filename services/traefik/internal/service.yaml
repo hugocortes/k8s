@@ -12,11 +12,13 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 8080
       name: web
     - protocol: TCP
       port: 443
       name: https
+    - protocol: TCP
+      port: 8080
+      name: admin
   type: LoadBalancer
   loadBalancerIP: 192.168.0.140
 ---
@@ -37,4 +39,4 @@ spec:
       paths:
       - backend:
           serviceName: traefik-internal
-          servicePort: web
+          servicePort: admin
