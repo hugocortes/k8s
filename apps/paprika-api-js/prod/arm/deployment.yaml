@@ -3,13 +3,13 @@ apiVersion: extensions/v1beta1
 metadata:
   name: paprika-api-js
 spec:
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       name: paprika-api-js
     spec:
       nodeSelector:
-        arch: arm32v6
+        beta.kubernetes.io/arch: arm
       containers:
       - name: paprika-api-js
         imagePullPolicy: Always

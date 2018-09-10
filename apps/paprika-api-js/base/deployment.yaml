@@ -24,6 +24,23 @@ spec:
       containers:
       - name: paprika-api-js
         image: docker.io/hugocortes/paprika-api-js
+        resources:
+          limits:
+            cpu: 200m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+        ports:
+          - name: http
+            containerPort: 3000
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: http
+          initialDelaySeconds: 3
+          periodSeconds: 3
+          timeoutSeconds: 1
         env:
         - name: PORT
           valueFrom:
