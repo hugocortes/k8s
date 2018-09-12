@@ -58,7 +58,7 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 - `kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/metal-lb/configMap.yaml`
 10. Install the k8s dashboard
 - ARM: `kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard-arm.yaml`
-- AMD64: `kubectl apply -f https://github.com/kubernetes/dashboard/blob/master/src/deploy/recommended/kubernetes-dashboard.yaml`
+- AMD64: `kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml`
 11. Create a service account for k8s dashbaord:
 - `kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/dashboard/rbac.yaml`
 12. Get token to be used in dashboard:
