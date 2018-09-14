@@ -1,0 +1,190 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traefik-external
+  namespace: kube-system
+data:
+  traefik.toml: |
+    defaultEntryPoints = ["http","https"]
+    debug = false
+    logLevel = "INFO"
+
+    # redirect http to https
+    [entryPoints]
+      [entryPoints.http]
+        address = ":80"
+        compress = true
+        [entryPoints.http.redirect]
+          entryPoint = "https"
+      [entryPoints.https]
+        address = ":443"
+        compress = true
+        [entryPoints.https.tls]
+
+    [ping]
+      entryPoint = "http"
+
+    [api]
+      [api.statistics]
+        recentErrors = 10
+
+    [kubernetes]
+      # Only create ingresses where the object has traffic-type: external label
+      labelselector = "traffic-type=external"
+
+    [consul]
+      endpoint = "consul.internal.hugocortes.me"
+      watch = true
+      prefix = "traefik-external"
+
+    [acme]
+      email = "contact@hugocortes.me"
+      storage = "traefik-external-certificates/acme/account"
+      acmeLogging = true
+      entryPoint = "https"
+      OnHostRule = true
+      caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
+      [acme.httpChallenge]
+        entryPoint="http"
+      [[acme.domains]]
+        main = "hugocortes.me"
+        sans = ["resume.hugocortes.me", "api.hugocortes.me"]
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: traefik-external
+  namespace: kube-system
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 100
+  template:
+    metadata:
+      name: traefik-external
+    spec:
+      containers:
+      - name: storeconfig
+        image: traefik
+        imagePullPolicy: IfNotPresent
+        args: [ "storeconfig", "-c", "/config/traefik.toml" ]
+        volumeMounts:
+        - name: config
+          mountPath: /etc/traefik
+          readOnly: true
+      restartPolicy: Never
+      volumes:
+      - name: config
+        configMap:
+          name: traefik-external
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: traefik-external
+  namespace: kube-system
+  labels:
+    k8s-app: traefik-external
+spec:
+  serviceName: traefik-external
+  replicas: 2
+  selector:
+    matchLabels:
+      k8s-app: traefik-external
+  template:
+    metadata:
+      labels:
+        k8s-app: traefik-external
+        name: traefik-external
+    spec:
+      serviceAccountName: traefik-ingress-controller
+      terminationGracePeriodSeconds: 60
+      containers:
+      - image: traefik
+        name: traefik-external
+        ports:
+         - name: http
+           containerPort: 80
+         - name: https
+           containerPort: 443
+         - name: admin
+           containerPort: 8080
+        args:
+        - --api
+        - --configfile=/config/traefik.toml
+        livenessProbe:
+          httpGet:
+            # not sure why cluster mode uses health instead
+            path: /health
+            port: 8080
+          initialDelaySeconds: 180
+          periodSeconds: 3
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /config
+          name: config
+      volumes:
+      - name: config
+        configMap:
+          name: traefik-external
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: role
+                  operator: In
+                  values:
+                  - data
+              topologyKey: kubernetes.io/hostname
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: traefik-external
+  namespace: kube-system
+  labels:
+    k8s-app: traefik-external
+spec:
+  selector:
+    k8s-app: traefik-external
+  externalTrafficPolicy: Local
+  ports:
+    - protocol: TCP
+      port: 80
+      name: web
+    - protocol: TCP
+      port: 443
+      name: https
+    - protocol: TCP
+      port: 8080
+      name: admin
+  type: LoadBalancer
+  loadBalancerIP: 192.168.2.100
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: traefik-external
+  namespace: kube-system
+  labels:
+    traffic-type: internal
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefix
+spec:
+  rules:
+  - host: traefik-ext.internal.hugocortes.me
+    http:
+      paths:
+      - backend:
+          serviceName: traefik-external
+          servicePort: admin

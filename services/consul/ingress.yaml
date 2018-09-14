@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: consul
+  namespace: consul
+  labels:
+    traffic-type: internal
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefix
+spec:
+  rules:
+  - host: consul.internal.hugocortes.me
+    http:
+      paths:
+      - backend:
+          serviceName: consul
+          servicePort: 8500
