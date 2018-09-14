@@ -64,7 +64,7 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 12. Get token to be used in dashboard:
 - `kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')`
 13. Create internal ingress controller Traefik (Change `loadBalancerIP` in Service to reflect your allocated load balancer IP range)
-- `kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/traefik/internal/manifest.yaml`
+- `kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/traefik/internal-manifest.yaml`
 14. Create k8s dashboard ingress: (Currently pointing to `k8s.internal.hugocortes.me`, change to a domain of your choice)
 - `kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/dashboard/ingress.yaml`
 15. Add the following to `/etc/hosts` (replacing the domain and IP with your setup)
@@ -72,7 +72,7 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 192.168.0.100 traefik-int.internal.hugocortes.me
 192.168.0.100 k8s.internal.hugocortes.me
 ```
-16. http://traefik-int.internal.hugocortes.me and https://k8s.internal.hugocortes.me will now be up although HTTPS certificates will be invalid as internal configuration does not validate https
+- http://traefik-int.internal.hugocortes.me and https://k8s.internal.hugocortes.me will now be up although HTTPS certificates will be invalid as internal configuration does not validate https
 
 ### full amd64 cluster additional steps
 
@@ -83,3 +83,30 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contrib/kubernetes/squash-server.yml
 kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contrib/kubernetes/squash-client.yml
 ```
+
+18. Install nfs based on this [guide](
+https://github.com/kubernetes-incubator/external-storage/blob/master/nfs/docs/deployment.md#in-kubernetes---statefulset-of-1-replica)
+- `kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/nfs/manifest.yaml`
+
+19. Install nfs-commons to all nodes
+- `apt-get install -y nfs-common`
+
+18. Install [helm](https://docs.helm.sh/using_helm/#installing-helm)
+
+20. Install consul
+- `helm install --name consul stable/consul --timeout 600 --namespace consul`
+
+21. Install external ingress controller
+- `kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/traefik/external-manifest.yaml`
+
+19. (Optional) Install spinnaker
+- `helm install --name spinnaker stable/spinnaker --timeout 600 --namespace spinnaker`
+- If following error is seen: `Error: release release failed: namespaces "spinnaker" is forbidden: User "system:serviceaccount:kube-system:default" cannot get namespaces in the namespace "spinnaker"`
+```
+kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+```
+
+20. (Optional) Spinnaker ingress
+- `kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/spinnaker/ingress.yaml`
