@@ -2,6 +2,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: paprika-api-js
+  namespace: app
   labels:
     app: paprika-api-js
     role: backend
@@ -18,6 +19,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: paprika-api-js
+  namespace: app
   labels:
     app: paprika-api-js
     role: backend
