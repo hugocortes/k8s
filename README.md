@@ -110,3 +110,17 @@ kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"templat
 
 20. (Optional) Spinnaker ingress
 - `kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/spinnaker/ingress.yaml`
+
+Misc:
+- The following script will allow you to create Basic auth secrets (required for spinnaker ingress which needs spinnaker-auth named secret)
+```sh
+#!/bin/bash
+if [[ $# -eq 0 ]] ; then
+    echo "Run the script with the required auth user and namespace for the secret: ${0} [name] [user] [namespace]"
+    exit 0
+fi
+printf "${2}:`openssl passwd -apr1`\n" >> ingress_auth.tmp
+kubectl delete secret -n ${3} ${1}
+kubectl create secret generic ${1} --from-file=ingress_auth.tmp -n ${3}
+rm ingress_auth.tmp
+```
