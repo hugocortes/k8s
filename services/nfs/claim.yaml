@@ -1,0 +1,14 @@
+# PVC example. NFS will create a matching PV
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: nfs
+  annotations:
+    volume.beta.kubernetes.io/storage-class: "nfs.internal.hugocortes.me"
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Mi
