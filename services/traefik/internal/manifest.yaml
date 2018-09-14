@@ -1,56 +1,8 @@
-# This file is generated with kustomize:
-# kustomize build services/traefik/internal
-
 apiVersion: v1
-kind: ServiceAccount
+kind: ConfigMap
 metadata:
-  labels:
-    k8s-app: traefik-internal
-  name: traefik-ingress-controller
+  name: traefik-internal
   namespace: kube-system
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  labels:
-    k8s-app: traefik-internal
-  name: traefik-ingress-controller
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - services
-  - endpoints
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - extensions
-  resources:
-  - ingresses
-  verbs:
-  - get
-  - list
-  - watch
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  labels:
-    k8s-app: traefik-internal
-  name: traefik-ingress-controller
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: traefik-ingress-controller
-subjects:
-- kind: ServiceAccount
-  name: traefik-ingress-controller
-  namespace: kube-system
----
-apiVersion: v1
 data:
   traefik.toml: |
     defaultEntryPoints = ["http","https"]
@@ -62,52 +14,26 @@ data:
 
     [entryPoints]
       [entryPoints.http]
-      address = ":80"
-      compress = true
+        address = ":80"
+        compress = true
       [entryPoints.https]
-      address = ":443"
-        [entryPoints.https.tls]
+        address = ":443"
+          [entryPoints.https.tls]
 
-      [ping]
-        entryPoint = "http"
-kind: ConfigMap
-metadata:
-  labels:
-    k8s-app: traefik-internal
-  name: traefik-internal
-  namespace: kube-system
+    [ping]
+      entryPoint = "http"
+
+    [kubernetes]
+      # Only create ingresses where the object has traffic-type: external label
+      labelselector = "traffic-type=internal"
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    k8s-app: traefik-internal
-  name: traefik-internal
-  namespace: kube-system
-spec:
-  externalTrafficPolicy: Local
-  loadBalancerIP: 192.168.0.140
-  ports:
-  - name: web
-    port: 80
-    protocol: TCP
-  - name: https
-    port: 443
-    protocol: TCP
-  - name: admin
-    port: 8080
-    protocol: TCP
-  selector:
-    k8s-app: traefik-internal
-  type: LoadBalancer
----
-apiVersion: extensions/v1beta1
 kind: Deployment
+apiVersion: extensions/v1beta1
 metadata:
-  labels:
-    k8s-app: traefik-internal
   name: traefik-internal
   namespace: kube-system
+  labels:
+    k8s-app: traefik-internal
 spec:
   replicas: 1
   selector:
@@ -118,28 +44,11 @@ spec:
       labels:
         k8s-app: traefik-internal
     spec:
+      serviceAccountName: traefik-ingress-controller
+      terminationGracePeriodSeconds: 60
       containers:
-      - args:
-        - --api
-        - --kubernetes
-        - --logLevel=INFO
-        - --configfile=/config/traefik.toml
-        image: traefik
-        livenessProbe:
-          httpGet:
-            path: /ping
-            port: 80
-          initialDelaySeconds: 3
-          periodSeconds: 3
-          timeoutSeconds: 1
+      - image: traefik
         name: traefik-internal
-        ports:
-        - containerPort: 80
-          name: http
-        - containerPort: 443
-          name: https
-        - containerPort: 8080
-          name: admin
         resources:
           limits:
             cpu: 200m
@@ -147,27 +56,65 @@ spec:
           requests:
             cpu: 100m
             memory: 20Mi
+        ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+        - name: admin
+          containerPort: 8080
+        args:
+        - --api
+        - --configfile=/config/traefik.toml
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 80
+          initialDelaySeconds: 3
+          periodSeconds: 3
+          timeoutSeconds: 1
         volumeMounts:
         - mountPath: /config
           name: traefik-internal
-      serviceAccountName: traefik-ingress-controller
-      terminationGracePeriodSeconds: 60
       volumes:
-      - configMap:
+      - name: traefik-internal
+        configMap:
           name: traefik-internal
-        name: traefik-internal
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: traefik-internal
+  namespace: kube-system
+  labels:
+    k8s-app: traefik-internal
+spec:
+  selector:
+    k8s-app: traefik-internal
+  externalTrafficPolicy: Local
+  ports:
+    - protocol: TCP
+      port: 80
+      name: web
+    - protocol: TCP
+      port: 443
+      name: https
+    - protocol: TCP
+      port: 8080
+      name: admin
+  type: LoadBalancer
+  loadBalancerIP: 192.168.2.101
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
+  name: traefik-internal
+  namespace: kube-system
+  labels:
+    traffic-type: internal
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.frontend.rule.type: PathPrefix
-  labels:
-    k8s-app: traefik-internal
-    traffic-type: internal
-  name: traefik-internal
-  namespace: kube-system
 spec:
   rules:
   - host: traefik-int.internal.hugocortes.me

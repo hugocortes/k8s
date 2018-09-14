@@ -1,7 +1,0 @@
-commonLabels:
-  k8s-app: traefik-internal
-resources:
-- ./../rbac.yaml
-- deployment.yaml
-- service.yaml
-- configMap.yaml
