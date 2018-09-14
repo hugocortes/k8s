@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: spinnaker
+  namespace: spinnaker
+  labels:
+    traffic-type: external
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefix
+    ingress.kubernetes.io/auth-type: basic
+    ingress.kubernetes.io/auth-secret: spinnaker-auth
+spec:
+  rules:
+  - host: spinnaker.hugocortes.me
+    http:
+      paths:
+      - backend:
+          serviceName: spin-deck
+          servicePort: 9000
