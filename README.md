@@ -94,7 +94,10 @@ https://github.com/kubernetes-incubator/external-storage/blob/master/nfs/docs/de
 18. Install [helm](https://docs.helm.sh/using_helm/#installing-helm)
 
 20. Install consul
-- `helm install --name consul stable/consul --timeout 600 --namespace consul`
+```
+helm install --name consul stable/consul --timeout 600 --namespace consul
+kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/consul/ingress.yaml
+```
 
 21. Install external ingress controller
 - `kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/traefik/external-manifest.yaml`
