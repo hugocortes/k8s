@@ -4,15 +4,13 @@ metadata:
   name: spinnaker
   namespace: spinnaker
   labels:
-    traffic-type: external
+    traffic-type: internal
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.frontend.rule.type: PathPrefix
-    ingress.kubernetes.io/auth-type: basic
-    ingress.kubernetes.io/auth-secret: spinnaker-auth
 spec:
   rules:
-  - host: spinnaker.hugocortes.me
+  - host: spinnaker.internal.hugocortes.me
     http:
       paths:
       - backend:
