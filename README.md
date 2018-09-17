@@ -95,7 +95,15 @@ kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contri
 kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contrib/kubernetes/squash-client.yml
 ```
 
-11. Install nfs based on this [guide](
+11. Install external ingress controller
+```sh
+# If HTTPs passthrough will be used
+kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/traefik/external-manifest.yaml
+# If HTTPs offloading will be done
+kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/traefik/external-manifest-http.yaml
+```
+
+12. Install nfs based on this [guide](
 https://github.com/kubernetes-incubator/external-storage/blob/master/nfs/docs/deployment.md#in-kubernetes---statefulset-of-1-replica)
 ```sh
 kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/nfs/manifest.yaml
@@ -103,9 +111,9 @@ kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/service
 apt-get install -y nfs-common
 ```
 
-12. Install [helm](https://docs.helm.sh/using_helm/#installing-helm)
+13. Install [helm](https://docs.helm.sh/using_helm/#installing-helm)
 
-13. Install Helm services
+14. Install Helm services
 ```sh
 # add service account
 kubectl create serviceaccount --namespace kube-system tiller
@@ -127,12 +135,10 @@ kubectl exec --namespace spinnaker -it spinnaker-spinnaker-halyard-0 bash
 kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/spinnaker/ingress.yaml
 ```
 
-14. Install external ingress controller
+15. Follow Helm Openfaas [here](https://github.com/openfaas/faas-netes/tree/master/chart/openfaas#deploy-openfaas)
 ```sh
-# If HTTPs passthrough will be used
-kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/traefik/external-manifest.yaml
-# If HTTPs offloading will be done
-kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/traefik/external-manifest-http.yaml
+# add openfaas ingress
+kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/openfaas/ingress.yaml
 ```
 
 Misc:
