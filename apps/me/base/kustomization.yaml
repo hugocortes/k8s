@@ -1,6 +1,8 @@
 commonLabels:
   app: me
+  env: local
 resources:
-  - deployment.yaml
-  - configMap.yaml
-  - namespace.yaml
+- deployment.yaml
+- configMap.yaml
+- namespace.yaml
+- service.yaml

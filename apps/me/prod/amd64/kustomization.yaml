@@ -3,7 +3,5 @@ bases:
 patches:
 - ./../configMap.yaml
 - ./../deployment.yaml
-resources:
-- ./../service.yaml
 commonLabels:
   env: prod

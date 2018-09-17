@@ -5,9 +5,9 @@ build:
     sha256: {}
   artifacts:
   - imageName: docker.io/hugocortes/me
-    workspace: # local dir
+    workspace: ./../me # local dir
   local:
     skipPush: null
 deploy:
   kustomize:
-    kustomizePath: ./apps/me/local/
+    kustomizePath: ./apps/me/base/

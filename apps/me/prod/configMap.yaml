@@ -4,3 +4,4 @@ metadata:
   name: me
 data:
   BASE_URL: 'https://resume.hugocortes.me'
+  APPEND_PORT: 'false'
