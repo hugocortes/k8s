@@ -136,6 +136,7 @@ kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/service
 ```
 
 Misc:
+- When deploying apps on local cluster, use: `kubectl port-forward svc/<serviceName> -n hugocortes <externalPort>:<servicePort>`
 - The following script will allow you to create Basic auth secrets (required for spinnaker ingress which needs spinnaker-auth named secret)
 ```sh
 #!/bin/bash

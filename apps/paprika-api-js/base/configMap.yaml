@@ -2,13 +2,13 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: paprika-api-js
-  namespace: app
+  namespace: hugocortes
   labels:
     app: paprika-api-js
     role: backend
     env: local
 data:
-  NODE_ENV: local
+  NODE_ENV: prod
   PORT: "3000"
   HOST: "0.0.0.0"
   LOG_LEVEL: debug

@@ -5,9 +5,9 @@ build:
     sha256: {}
   artifacts:
   - imageName: docker.io/hugocortes/paprika-api-js
-    workspace: # local dir
+    workspace: ./../paprika-api-js # local dir
   local:
     skipPush: null
 deploy:
   kustomize:
-    kustomizePath: ./apps/paprika-api-js/local/
+    kustomizePath: ./apps/paprika-api-js/base/

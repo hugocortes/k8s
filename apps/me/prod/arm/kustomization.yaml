@@ -2,7 +2,7 @@ bases:
 - ./../../base
 patches:
 - ./../configMap.yaml
-- ./../deployment.yaml
+- deployment.yaml
 commonLabels:
   env: prod
 imageTags:
