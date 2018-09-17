@@ -1,0 +1,6 @@
+commonLabels:
+  app: blue-green
+resources:
+- deployment.yaml
+- namespace.yaml
+- service.yaml

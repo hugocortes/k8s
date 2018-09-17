@@ -1,0 +1,34 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: blue-green
+  namespace: hugocortes
+  labels:
+    app: blue-green
+    role: frontend
+    env: local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blue-green
+      role: frontend
+      env: local
+  template:
+    metadata:
+      name: blue-green
+      labels:
+        app: blue-green
+        role: frontend
+        env: local
+    spec:
+      containers:
+      - name: blue-green
+        image: docker.io/hugocortes/blue-green
+        resources:
+          limits:
+            cpu: 75m
+            memory: 10Mi
+          requests:
+            cpu: 25m
+            memory: 5Mi
