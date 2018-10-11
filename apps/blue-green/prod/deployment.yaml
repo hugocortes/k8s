@@ -1,0 +1,13 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: blue-green
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: blue-green
+    spec:
+      containers:
+      - name: blue-green
+        imagePullPolicy: Always

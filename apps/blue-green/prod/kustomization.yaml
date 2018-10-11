@@ -1,4 +1,9 @@
-bases:
-- ./../base
 commonLabels:
   env: prod
+bases:
+- ./../base
+patches:
+- deployment.yaml
+imageTags:
+- name: docker.io/hugocortes/blue-green
+  newTag: prod-1234

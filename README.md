@@ -141,6 +141,12 @@ kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/service
 kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/openfaas/ingress.yaml
 ```
 
+16. Install grafana
+```sh
+helm install --name grafana stable/grafana --namespace grafana
+kubectl create -f https://raw.githubusercontent.com/hugocortes/k8s/devel/services/grafana/ingress.yaml
+```
+
 Misc:
 - When deploying apps on local cluster, use: `kubectl port-forward svc/<serviceName> -n hugocortes <externalPort>:<servicePort>`
 - The following script will allow you to create Basic auth secrets (required for spinnaker ingress which needs spinnaker-auth named secret)
