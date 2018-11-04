@@ -62,12 +62,12 @@ kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"templat
 ```
 7. Install NFS provisioner
 ```sh
+# install nfs-commons to all nodes
+apt-get install -y nfs-common
+
 helm install --name nfs \
   --set=storageClass.defaultClass=true \
   stable/nfs-server-provisioner
-
-# install nfs-commons to all nodes
-apt-get install -y nfs-common
 ```
 8. Install MetalLB
 ```sh
@@ -97,20 +97,7 @@ helm install --name k8s-dashboard \
 # retrieving token
 kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
 ```
-11. Install Spinnaker
-```sh
-# install spinnaker
-helm install --name spinnaker \
-  --namespace spinnaker \
-  -f services/spinnaker-values.yaml \
-  stable/spinnaker
-
-# adding GCS and GCR spinnaker access
-# https://cloud.google.com/solutions/continuous-delivery-spinnaker-kubernetes-engine
-# spinnaker customization (post-install)
-kubectl exec --namespace spinnaker -it spinnaker-spinnaker-halyard-0 bash
-```
-12. Install [Openfaas](https://github.com/openfaas/faas-netes/tree/master/chart/openfaas#deploy-openfaas)
+11. Install [Openfaas](https://github.com/openfaas/faas-netes/tree/master/chart/openfaas#deploy-openfaas)
 ```sh
 # Create the namespaces
 kubectl apply -f https://raw.githubusercontent.com/openfaas/faas-netes/master/namespaces.yml
@@ -131,10 +118,28 @@ helm repo update \
   --namespace openfaas \
   -f services/openfaas-values.yaml
 ```
-13. Install squash server and client:
+12. Install squash server and client:
 ```sh
 kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contrib/kubernetes/squash-server.yml
 kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contrib/kubernetes/squash-client.yml
+```
+13. Install Spinnaker
+```sh
+# install spinnaker
+helm install --name spinnaker \
+  --namespace spinnaker \
+  -f services/spinnaker-values.yaml \
+  stable/spinnaker
+
+# adding GCS and GCR spinnaker access
+# https://cloud.google.com/solutions/continuous-delivery-spinnaker-kubernetes-engine
+# spinnaker customization (post-install)
+kubectl exec --namespace spinnaker -it spinnaker-spinnaker-halyard-0 bash
+
+# note, if nfs error is received, unmount the offending nfs folder
+umount /home/spinnaker/.hal/default/staging/.nfs#########
+hal config generate
+hal deploy apply
 ```
 
 Misc:
