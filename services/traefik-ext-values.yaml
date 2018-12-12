@@ -16,9 +16,9 @@ podDisruptionBudget: {}
 # rootCAs: []
 
 cpuRequest: 100m
-memoryRequest: 20Mi
-cpuLimit: 100m
-memoryLimit: 30Mi
+memoryRequest: 100Mi
+cpuLimit: 200m
+memoryLimit: 200Mi
 debug:
   enabled: false
 
