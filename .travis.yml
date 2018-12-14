@@ -1,0 +1,28 @@
+sudo: required
+language: minimal
+
+before_install:
+  - wget https://storage.googleapis.com/kubernetes-helm/helm-v2.12.0-linux-amd64.tar.gz
+  - tar -zxvf helm-v2.12.0-linux-amd64.tar.gz
+  - sudo mv linux-amd64/helm /usr/local/bin/helm
+  - helm init --client-only
+  - mkdir manifests
+
+script:
+  # blue-green app
+  - mkdir manifests/blue-green
+  - helm package apps/blue-green
+  - mv blue-green-1.0.0.tgz manifests/blue-green
+  - mv apps/blue-green/values-dev.yaml manifests/blue-green
+  - mv apps/blue-green/values-prod.yaml manifests/blue-green
+
+deploy:
+  provider: gcs
+  access_key_id: $GCS_ACCESS_KEY
+  secret_access_key: $GCS_ACCESS_SECRET
+  bucket: hugocortes
+  skip_cleanup: true
+  local-dir: manifests
+  acl: private
+  on:
+    all_branches: true
