@@ -26,11 +26,11 @@ service:
 ingress:
   enabled: true
   annotations:
-    kubernetes.io/ingress.class: traefik-internal
+    kubernetes.io/ingress.class: traefik-dev
     traefik.frontend.rule.type: PathPrefix
   path: /
   hosts:
-    - blue-green.internal.hugocortes.me
+    - blue-green.dev.hugocortes.me
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:

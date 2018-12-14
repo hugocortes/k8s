@@ -8,6 +8,6 @@ Deploying an app using helm
 ```sh
 helm install --name APP \
 --namespace hugocortes \
--f blue-green/values-dev.yaml \
-blue-green
+-f APP/values-dev.yaml \
+APP
 ```
