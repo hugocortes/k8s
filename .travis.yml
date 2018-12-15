@@ -13,7 +13,7 @@ script:
   - mkdir manifests/blue-green
   - helm package apps/blue-green
   - mv blue-green-1.0.0.tgz manifests/blue-green
-  - mv apps/blue-green/values-dev.yaml manifests/blue-green
+  - mv apps/blue-green/values-devel.yaml manifests/blue-green
   - mv apps/blue-green/values-prod.yaml manifests/blue-green
 
 deploy:
