@@ -7,6 +7,8 @@ fullnameOverride: ""
 
 replicaCount: 1
 
+labels: {}
+
 image:
   repository: docker.io/hugocortes/blue-green
   tag: latest

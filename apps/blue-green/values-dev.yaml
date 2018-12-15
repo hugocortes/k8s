@@ -7,6 +7,9 @@ fullnameOverride: ""
 
 replicaCount: 1
 
+labels:
+  env: devel
+
 image:
   repository: hugocortes/blue-green
   pullPolicy: Always

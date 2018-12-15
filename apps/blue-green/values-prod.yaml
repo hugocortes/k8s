@@ -7,7 +7,9 @@ fullnameOverride: ""
 
 replicaCount: 2
 
-labels: {}
+labels:
+  env: prod
+
 
 image:
   repository: hugocortes/blue-green
