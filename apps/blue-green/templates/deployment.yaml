@@ -13,6 +13,12 @@ metadata:
 {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 50%
   selector:
     matchLabels:
       app: {{ include "blue-green.name" . }}
