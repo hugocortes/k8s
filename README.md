@@ -66,8 +66,10 @@ kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"templat
 apt-get install -y nfs-common
 
 helm install --name nfs \
-  --set=storageClass.defaultClass=true \
+  -f services/nfs-values.yaml \
   stable/nfs-server-provisioner
+
+kubectl apply -f services/nfs-provisioner-pv.yaml
 ```
 8. Install MetalLB
 ```sh
