@@ -27,7 +27,7 @@ ingress:
     traefik.frontend.rule.type: PathPrefix
   path: /
   hosts:
-    - resume.hugocortes.me
+    - hugocortes.me
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
