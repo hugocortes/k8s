@@ -15,6 +15,12 @@ script:
   - mv blue-green-1.0.0.tgz manifests/blue-green
   - mv apps/blue-green/values-devel.yaml manifests/blue-green
   - mv apps/blue-green/values-prod.yaml manifests/blue-green
+  # me app
+  - mkdir manifests/me
+  - helm package apps/me
+  - mv me-1.0.0.tgz manifests/me
+  - mv apps/me/values-devel.yaml manifests/me
+  - mv apps/me/values-prod.yaml manifests/me
 
 deploy:
   provider: gcs
