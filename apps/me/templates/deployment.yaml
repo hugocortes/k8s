@@ -1,0 +1,61 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ include "me.fullname" . }}
+  namespace: {{ .Release.Namespace}}
+  labels:
+    app.kubernetes.io/name: {{ include "me.name" . }}
+    helm.sh/chart: {{ include "me.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- if .Values.labels }}
+{{ toYaml .Values.labels | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 50%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "me.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "me.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.service.port }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.service.port }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

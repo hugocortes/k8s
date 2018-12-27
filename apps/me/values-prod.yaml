@@ -1,0 +1,47 @@
+# Default values for me.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+labels:
+  env: devel
+  role: static
+
+image:
+  repository: hugocortes/me
+  pullPolicy: Always
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+    traefik.frontend.rule.type: PathPrefix
+  path: /
+  hosts:
+    - resume.hugocortes.me
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  limits:
+   cpu: 100m
+   memory: 128Mi
+  requests:
+   cpu: 100m
+   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
