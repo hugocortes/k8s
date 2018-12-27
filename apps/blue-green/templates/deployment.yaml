@@ -4,10 +4,10 @@ metadata:
   name: {{ include "blue-green.fullname" . }}
   namespace: {{ .Release.Namespace}}
   labels:
-    app: {{ include "blue-green.name" . }}
-    chart: {{ include "blue-green.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    app.kubernetes.io/name: {{ include "blue-green.name" . }}
+    helm.sh/chart: {{ include "blue-green.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- if .Values.labels }}
 {{ toYaml .Values.labels | indent 4 }}
 {{- end }}
@@ -21,13 +21,13 @@ spec:
       maxUnavailable: 50%
   selector:
     matchLabels:
-      app: {{ include "blue-green.name" . }}
-      release: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ include "blue-green.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ include "blue-green.name" . }}
-        release: {{ .Release.Name }}
+        app.kubernetes.io/name: {{ include "blue-green.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -37,10 +37,14 @@ spec:
             - name: http
               containerPort: 80
               protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.service.port }}
           readinessProbe:
             httpGet:
               path: /
-              port: http
+              port: {{ .Values.service.port }}
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- with .Values.nodeSelector }}

@@ -2,25 +2,16 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-nameOverride: ""
-fullnameOverride: ""
-
 replicaCount: 1
 
 labels: {}
 
 image:
-  repository: docker.io/hugocortes/blue-green
-  tag: latest
+  repository: hugocortes/blue-green
   pullPolicy: Always
 
-resources:
-  limits:
-   cpu: 100m
-   memory: 128Mi
-  requests:
-   cpu: 100m
-   memory: 128Mi
+nameOverride: ""
+fullnameOverride: ""
 
 service:
   type: ClusterIP
@@ -37,6 +28,14 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+resources:
+  limits:
+   cpu: 100m
+   memory: 128Mi
+  requests:
+   cpu: 100m
+   memory: 128Mi
 
 nodeSelector: {}
 

@@ -4,10 +4,10 @@ metadata:
   name: {{ include "blue-green.fullname" . }}
   namespace: {{ .Release.Namespace}}
   labels:
-    app: {{ include "blue-green.name" . }}
-    chart: {{ include "blue-green.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    app.kubernetes.io/name: {{ include "blue-green.name" . }}
+    helm.sh/chart: {{ include "blue-green.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- if .Values.labels }}
 {{ toYaml .Values.labels | indent 4 }}
 {{- end }}
@@ -19,5 +19,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: {{ include "blue-green.name" . }}
-    release: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ include "blue-green.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
