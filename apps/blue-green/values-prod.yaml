@@ -5,7 +5,9 @@
 replicaCount: 2
 
 labels:
+  app: blue-green
   env: prod
+  role: static
 
 image:
   repository: hugocortes/blue-green
