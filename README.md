@@ -78,19 +78,32 @@ helm install --name metallb \
   -f services/metallb-values.yaml \
   stable/metallb
 ```
-9. Install Traefik
+9. Install Consul
+```sh
+helm install --name consul \
+  -f services/consul-values.yaml \
+  stable/consul
+```
+10. Install Internal Traefik
 ```sh
 # Internal Traefik
 helm install --name traefik-internal \
   -f services/traefik-int-values.yaml \
   stable/traefik
 
+# Dev Traefik
+helm install --name traefik-dev \
+  -f services/traefik-dev-values.yaml \
+  stable/traefik
+```
+11. Install External Traefik
+```sh
 # External Traefik
 helm install --name traefik-external \
   -f services/traefik-ext-values.yaml \
   stable/traefik
 ```
-10. Install Kubernetes Dashboard
+12. Install Kubernetes Dashboard
 ```sh
 helm install --name k8s-dashboard \
   -f services/k8s-dashboard-values.yaml \
@@ -99,7 +112,7 @@ helm install --name k8s-dashboard \
 # retrieving token
 kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
 ```
-11. Install [Openfaas](https://github.com/openfaas/faas-netes/tree/master/chart/openfaas#deploy-openfaas)
+13. Install [Openfaas](https://github.com/openfaas/faas-netes/tree/master/chart/openfaas#deploy-openfaas)
 ```sh
 # Create the namespaces
 kubectl apply -f https://raw.githubusercontent.com/openfaas/faas-netes/master/namespaces.yml
@@ -120,12 +133,12 @@ helm repo update \
   --namespace openfaas \
   -f services/openfaas-values.yaml
 ```
-12. Install squash server and client:
+14. Install squash server and client:
 ```sh
 kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contrib/kubernetes/squash-server.yml
 kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contrib/kubernetes/squash-client.yml
 ```
-13. Install Spinnaker
+15. Install Spinnaker
 ```sh
 # install spinnaker
 helm install --name spinnaker \
