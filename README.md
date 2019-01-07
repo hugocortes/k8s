@@ -151,9 +151,7 @@ helm install --name spinnaker \
 # spinnaker customization (post-install)
 kubectl exec --namespace spinnaker -it spinnaker-spinnaker-halyard-0 bash
 
-# note, if nfs error is received, unmount the offending nfs folder
-umount /home/spinnaker/.hal/default/staging/.nfs#########
-hal config generate
+# redeploy after changes
 hal deploy apply
 ```
 
