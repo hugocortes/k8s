@@ -3,11 +3,11 @@ image: traefik
 imageTag: 1.7.2
 ## can switch the service type to NodePort if required
 serviceType: LoadBalancer
-loadBalancerIP: "192.168.2.100"
+loadBalancerIP: "192.168.2.102"
 # loadBalancerSourceRanges: []
 whiteListSourceRange: []
 externalTrafficPolicy: Local
-replicas: 3
+replicas: 1
 
 podDisruptionBudget: {}
   # maxUnavailable: 1
@@ -43,7 +43,7 @@ kubernetes:
   # namespaces:
   # - default
   #labelSelector:
-  ingressClass: traefik-external
+  ingressClass: traefik-dev
   # ingressEndpoint:
   #   hostname: "localhost"
   #   ip: "127.0.0.1"
@@ -60,7 +60,7 @@ forwardedHeaders:
   # - 10.0.0.0/8
 ssl:
   enabled: true
-  enforced: true
+  enforced: false
 
 kvprovider:
   storeAcme: true
@@ -69,7 +69,7 @@ kvprovider:
   consul:
     endpoint: consul:8500
     watch: true
-    prefix: traefik-external
+    prefix: traefik-dev
 
 acme:
   enabled: true
@@ -86,7 +86,7 @@ acme:
 
 dashboard:
   enabled: true
-  domain: traefik-ext.internal.hugocortes.me
+  domain: traefik-dev.internal.hugocortes.me
   service: {}
     # annotations:
     #   key: value
@@ -161,7 +161,7 @@ deployment:
     httpEnabled: false
     httpsEnabled: false
     dashboardEnabled: false
-sendAnonymousUsage: true
+sendAnonymousUsage: false
 tracing:
   enabled: false
   serviceName: traefik

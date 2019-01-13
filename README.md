@@ -60,23 +60,20 @@ kubectl create serviceaccount --namespace kube-system tiller
 kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
 kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
 ```
-7. Install NFS provisioner
-```sh
-# install nfs-commons to all nodes
-apt-get install -y nfs-common
-
-# Requires a configured nfs server
-helm install --name nfs-client \
-  --namespace kube-system \
-  -f services/nfs-client-values.yaml \
-  stable/nfs-client-provisioner
-```
-8. Install MetalLB
+7. Install MetalLB
 ```sh
 helm install --name metallb \
   --namespace metallb \
   -f services/metallb-values.yaml \
   stable/metallb
+```
+8. Install NFS provisioner
+```sh
+# Requires a configured nfs server
+helm install --name nfs-client \
+  --namespace kube-system \
+  -f services/nfs-client-values.yaml \
+  stable/nfs-client-provisioner
 ```
 9. Install Consul
 ```sh
@@ -95,15 +92,13 @@ helm install --name traefik-internal \
 helm install --name traefik-dev \
   -f services/traefik-dev-values.yaml \
   stable/traefik
-```
-11. Install External Traefik
-```sh
+
 # External Traefik
 helm install --name traefik-external \
   -f services/traefik-ext-values.yaml \
   stable/traefik
 ```
-12. Install Kubernetes Dashboard
+11. Install Kubernetes Dashboard
 ```sh
 helm install --name k8s-dashboard \
   -f services/k8s-dashboard-values.yaml \
@@ -112,7 +107,7 @@ helm install --name k8s-dashboard \
 # retrieving token
 kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
 ```
-13. Install [Openfaas](https://github.com/openfaas/faas-netes/tree/master/chart/openfaas#deploy-openfaas)
+12. Install [Openfaas](https://github.com/openfaas/faas-netes/tree/master/chart/openfaas#deploy-openfaas)
 ```sh
 # Create the namespaces
 kubectl apply -f https://raw.githubusercontent.com/openfaas/faas-netes/master/namespaces.yml
@@ -133,12 +128,12 @@ helm repo update \
   --namespace openfaas \
   -f services/openfaas-values.yaml
 ```
-14. Install squash server and client:
+13. Install squash server and client:
 ```sh
 kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contrib/kubernetes/squash-server.yml
 kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contrib/kubernetes/squash-client.yml
 ```
-15. Install Spinnaker
+14. Install Spinnaker
 ```sh
 # install spinnaker
 helm install --name spinnaker \
