@@ -11,7 +11,7 @@ image:
   pullPolicy: IfNotPresent
 
 nfs:
-  server: hugocortes.me
+  server: nfs.hugocortes.me
   path: /
   mountOptions:
   - "vers=4.0"
