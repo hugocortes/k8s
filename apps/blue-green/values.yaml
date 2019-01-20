@@ -4,8 +4,6 @@
 
 replicaCount: 1
 
-labels: {}
-
 image:
   repository: hugocortes/blue-green
   pullPolicy: Always

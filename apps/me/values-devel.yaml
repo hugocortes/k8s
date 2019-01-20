@@ -4,11 +4,6 @@
 
 replicaCount: 1
 
-labels:
-  app: me
-  env: devel
-  role: static
-
 image:
   repository: hugocortes/me
   pullPolicy: Always

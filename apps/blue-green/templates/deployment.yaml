@@ -8,9 +8,6 @@ metadata:
     helm.sh/chart: {{ include "blue-green.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- if .Values.labels }}
-{{ toYaml .Values.labels | indent 4 }}
-{{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   minReadySeconds: 10
