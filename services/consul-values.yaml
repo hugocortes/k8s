@@ -25,10 +25,10 @@ ImageTag: "1.0.0"
 ImagePullPolicy: "Always"
 Resources:
  requests:
-   cpu: "100m"
+   cpu: 0.05
    memory: "256Mi"
  limits:
-   cpu: "500m"
+   cpu: 0.1
    memory: "512Mi"
 
 # Persistent volume size

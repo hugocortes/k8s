@@ -53,10 +53,10 @@ service:
 
 resources:
   limits:
-    cpu: 100m
+    cpu: 0.05
     memory: 100Mi
   requests:
-    cpu: 100m
+    cpu: 0.01
     memory: 100Mi
 
 ingress:
