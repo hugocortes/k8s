@@ -1,3 +1,4 @@
 *-secret.yaml
 *.tgz
 spinnaker-values.yaml
+keycloak-values.yaml
