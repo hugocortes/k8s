@@ -2,3 +2,4 @@
 *.tgz
 spinnaker-values.yaml
 keycloak-values.yaml
+postgres-values.yaml
