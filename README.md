@@ -149,6 +149,20 @@ kubectl exec --namespace spinnaker -it spinnaker-spinnaker-halyard-0 bash
 # redeploy after changes
 hal deploy apply
 ```
+15. Configure Monitoring
+```
+kubectl create namespace monitoring
+
+helm install --name prometheus \
+  --namespace monitoring \
+  -f services/prometheus-values.yaml \
+  stable/prometheus
+
+helm install --name grafana \ 
+  --namespace monitoring \
+  -f services/grafana-values.yaml \
+  stable/grafana
+```
 
 Misc:
 - When deploying apps on local cluster, use: `kubectl port-forward svc/<serviceName> -n <namespace> <LOCAL_PORT>:<servicePort>`
