@@ -1,7 +1,7 @@
 *-secret.yaml
 *.tgz
+.env
 grafana.yaml
 keycloak.yaml
-postgres.yaml
 spinnaker.yaml
 traefik-external.yaml
