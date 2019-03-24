@@ -1,8 +1,7 @@
 *-secret.yaml
 *.tgz
-spinnaker-values.yaml
-keycloak-values.yaml
-postgres-values.yaml
-grafana-values.yaml
-traefik-k8shomelab.yaml
-traefik-hugocortes.yaml
+grafana.yaml
+keycloak.yaml
+postgres.yaml
+spinnaker.yaml
+traefik-external.yaml

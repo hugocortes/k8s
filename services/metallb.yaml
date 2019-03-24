@@ -22,7 +22,7 @@ configInline:
   - name: ip-space
     protocol: layer2
     addresses:
-    - 192.168.2.100-192.168.2.110
+    - 192.168.2.100-192.168.2.105
 
 rbac:
   # create specifies whether to install and use RBAC rules.
@@ -75,10 +75,10 @@ speaker:
     repository: metallb/speaker
     tag: v0.7.3
     pullPolicy: IfNotPresent
-  resources: {}
-    # limits:
-      # cpu: 100m
-      # memory: 100Mi
+  resources:
+    limits:
+      cpu: 100m
+      memory: 100Mi
   nodeSelector: {}
   tolerations: []
   affinity: {}
