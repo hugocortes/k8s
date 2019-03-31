@@ -86,8 +86,10 @@ alertmanager:
     ## alertmanager Ingress annotations
     ##
     annotations:
-      kubernetes.io/ingress.class: traefik-internal
+      kubernetes.io/ingress.class: traefik-external
       traefik.frontend.rule.type: PathPrefix
+      ingress.kubernetes.io/auth-type: basic
+      ingress.kubernetes.io/auth-secret: basic
 
     ## alertmanager Ingress additional labels
     ##
@@ -97,7 +99,7 @@ alertmanager:
     ## Must be provided if Ingress is enabled
     ##
     hosts:
-      - alerts.internal.hugocortes.me
+      - alerts.k8shomelab.dev
 
     ## alertmanager Ingress TLS configuration
     ## Secrets must be manually created in the namespace
@@ -631,8 +633,10 @@ server:
     ## Prometheus server Ingress annotations
     ##
     annotations:
-      kubernetes.io/ingress.class: traefik-internal
+      kubernetes.io/ingress.class: traefik-external
       traefik.frontend.rule.type: PathPrefix
+      ingress.kubernetes.io/auth-type: basic
+      ingress.kubernetes.io/auth-secret: basic
 
     ## Prometheus server Ingress additional labels
     ##
@@ -642,7 +646,7 @@ server:
     ## Must be provided if Ingress is enabled
     ##
     hosts:
-      - prometheus.internal.hugocortes.me
+      - prometheus.k8shomelab.dev
 
     ## Prometheus server Ingress TLS configuration
     ## Secrets must be manually created in the namespace
@@ -819,14 +823,16 @@ pushgateway:
     ## pushgateway Ingress annotations
     ##
     annotations:
-      kubernetes.io/ingress.class: traefik-internal
+      kubernetes.io/ingress.class: traefik-external
       traefik.frontend.rule.type: PathPrefix
+      ingress.kubernetes.io/auth-type: basic
+      ingress.kubernetes.io/auth-secret: basic
 
     ## pushgateway Ingress hostnames with optional path
     ## Must be provided if Ingress is enabled
     ##
     hosts:
-      - pushgateway.internal.hugocortes.me
+      - pushgateway.k8shomelab.dev
 
     ## pushgateway Ingress TLS configuration
     ## Secrets must be manually created in the namespace
@@ -982,21 +988,6 @@ serverFiles:
         static_configs:
           - targets:
             - localhost:9090
-
-      - job_name: traefik-internal
-        static_configs:
-          - targets:
-            - traefik-internal.default.svc.cluster.local:8080
-
-      - job_name: traefik-dev
-        static_configs:
-          - targets:
-            - traefik-dev.default.svc.cluster.local:8080
-
-      - job_name: traefik-external
-        static_configs:
-          - targets:
-            - traefik-external.default.svc.cluster.local:8080
 
       # A scrape configuration for running Prometheus on a Kubernetes cluster.
       # This uses separate scrape configs for cluster components (i.e. API server, node)

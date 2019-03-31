@@ -1,6 +1,4 @@
 *-secret.yaml
 *.tgz
 .env
-keycloak.yaml
 spinnaker.yaml
-traefik-external.yaml

@@ -114,11 +114,13 @@ ConsulConfig: []
 uiIngress:
   enabled: true
   annotations:
-    kubernetes.io/ingress.class: traefik-internal
+    kubernetes.io/ingress.class: traefik-external
     traefik.frontend.rule.type: PathPrefix
+    ingress.kubernetes.io/auth-type: basic
+    ingress.kubernetes.io/auth-secret: basic
   labels: {}
   hosts:
-    - consul.internal.hugocortes.me
+    - consul.k8shomelab.dev
   tls: {}
 
 ## Useful when ACLs are enabled

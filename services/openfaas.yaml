@@ -64,12 +64,12 @@ ingress:
   enabled: true
   # Used to create Ingress record (should be used with exposeServices: false).
   hosts:
-    - host: openfaas.internal.hugocortes.me
+    - host: openfaas.k8shomelab.dev
       serviceName: gateway
       servicePort: 8080
       path: /
   annotations:
-    kubernetes.io/ingress.class: traefik-internal
+    kubernetes.io/ingress.class: traefik-external
     traefik.frontend.rule.type: PathPrefix
   tls:
     # Secrets must be manually created in the namespace.
