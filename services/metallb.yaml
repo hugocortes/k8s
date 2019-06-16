@@ -22,10 +22,14 @@ configInline:
   - name: ip-space
     protocol: layer2
     addresses:
-    - 192.168.2.100-192.168.2.105
+    - 192.168.10.30-192.168.10.35
 
 rbac:
   # create specifies whether to install and use RBAC rules.
+  create: true
+
+psp:
+  # create specifies whether to install and use Pod Security Policies.
   create: true
 
 prometheus:
