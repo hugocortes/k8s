@@ -1,0 +1,112 @@
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: homelabprojects
+  namespace: certificates
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    certmanager.k8s.io/issuer: letsencrypt-prod
+    kubernetes.io/ingress.class: nginx
+    ingress.kubernetes.io/ssl-redirect: "false"
+    certmanager.k8s.io/acme-challenge-type: http01
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  tls:
+  - hosts:
+    - homelabprojects.dev
+    secretName: homelabprojects-dev-tls
+  rules:
+  - host: homelabprojects.dev
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: ssl
+          servicePort: 80
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: api-homelabprojects
+  namespace: certificates
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    certmanager.k8s.io/issuer: letsencrypt-prod
+    kubernetes.io/ingress.class: nginx
+    ingress.kubernetes.io/ssl-redirect: "false"
+    certmanager.k8s.io/acme-challenge-type: http01
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  tls:
+  - hosts:
+    - api.homelabprojects.dev
+    secretName: api-homelabprojects-dev-tls
+  rules:
+  - host: api.homelabprojects.dev
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: ssl
+          servicePort: 80
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: auth-homelabprojects
+  namespace: certificates
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    certmanager.k8s.io/issuer: letsencrypt-prod
+    kubernetes.io/ingress.class: nginx
+    ingress.kubernetes.io/ssl-redirect: "false"
+    certmanager.k8s.io/acme-challenge-type: http01
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  tls:
+  - hosts:
+    - auth.homelabprojects.dev
+    secretName: auth-homelabprojects-dev-tls
+  rules:
+  - host: auth.homelabprojects.dev
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: ssl
+          servicePort: 80
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: blog-homelabprojects
+  namespace: certificates
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    certmanager.k8s.io/issuer: letsencrypt-prod
+    kubernetes.io/ingress.class: nginx
+    ingress.kubernetes.io/ssl-redirect: "false"
+    certmanager.k8s.io/acme-challenge-type: http01
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  tls:
+  - hosts:
+    - blog.homelabprojects.dev
+    secretName: blog-homelabprojects-dev-tls
+  rules:
+  - host: blog.homelabprojects.dev
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: ssl
+          servicePort: 80
+
