@@ -12,9 +12,9 @@ image:
 
 nfs:
   server: server.home.lan
-  path: /
+  path: /mnt/hdd/k8s
   mountOptions:
-  - "vers=4.0"
+  - nfsvers=4
 
 # For creating the StorageClass automatically:
 storageClass:
@@ -48,7 +48,7 @@ rbac:
 # If true, create & use Pod Security Policy resources
 # https://kubernetes.io/docs/concepts/policy/pod-security-policy/
 podSecurityPolicy:
-  enabled: false
+  enabled: true
 
 serviceAccount:
   # Specifies whether a ServiceAccount should be created
