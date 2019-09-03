@@ -1,0 +1,24 @@
+replicaCount: 1
+
+image:
+  repository: idobry/chartmuseumui
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 3000
+
+resources:
+  limits:
+   cpu: 50m
+   memory: 64Mi
+  requests:
+   cpu: 25m
+   memory: 32Mi
+
+chartMuseum: chartmuseum.default.svc.cluster.local:8080
+# basicJSON: [{\"username\":\"$CM_USER\",\"password\":\"$CM_PASS\"}]

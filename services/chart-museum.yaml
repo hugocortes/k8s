@@ -1,0 +1,19 @@
+# Chart Museum custom settings
+env:
+  open:
+    STORAGE: google
+    STORAGE_GOOGLE_PREFIX: cm-
+    ALLOW_OVERWRITE: true
+    DISABLE_API: false
+    DISABLE_METRICS: false
+resources:
+ limits:
+   cpu: 50m
+   memory: 64Mi
+ requests:
+   cpu: 25m
+   memory: 32Mi
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 8Gi
