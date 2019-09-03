@@ -2,7 +2,7 @@
 env:
   open:
     STORAGE: google
-    STORAGE_GOOGLE_PREFIX: cm-
+    STORAGE_GOOGLE_PREFIX: charts
     ALLOW_OVERWRITE: true
     DISABLE_API: false
     DISABLE_METRICS: false
