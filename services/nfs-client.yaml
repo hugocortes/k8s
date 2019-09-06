@@ -1,4 +1,4 @@
-# NFS Client custom settings
+# nfs client custom settings
 replicaCount: 2
 nfs:
   server: server.home.lan

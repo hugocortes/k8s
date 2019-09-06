@@ -1,0 +1,22 @@
+# spinnaker custom settings
+halyard:
+  image:
+    tag: 1.23.1
+  resources:
+    requests:
+      memory: 500Mi
+      cpu: 100m
+    limits:
+      memory: 1Gi
+      cpu: 200m
+dockerRegistries:
+- name: dockerhub
+  address: index.docker.io
+  repositories:
+    - hugocortes/me
+spinnakerFeatureFlags:
+  - artifacts
+  - jobs
+  - pipeline-templates
+minio:
+  enabled: false
