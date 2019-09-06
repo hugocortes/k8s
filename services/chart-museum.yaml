@@ -1,8 +1,6 @@
-# Chart Museum custom settings
+# chart museum custom settings
 env:
   open:
-    STORAGE: google
-    STORAGE_GOOGLE_PREFIX: charts
     ALLOW_OVERWRITE: true
     DISABLE_API: false
     DISABLE_METRICS: false
