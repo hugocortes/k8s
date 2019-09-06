@@ -1,0 +1,23 @@
+# istio custom settings
+global:
+  mtls:
+    enabled: true
+  k8sIngress:
+    enabled: true
+    enableHttps: false
+    gatewayName: ingressgateway
+gateways:
+  istio-ingressgateway:
+    enabled: true
+    sds:
+      enabled: true
+sidecarInjectorWebhook:
+  enabled: true
+  rewriteAppHTTPProbe: true
+grafana:
+  enabled: true
+prometheus:
+  enabled: true
+certmanager:
+  enabled: true
+  email: contact@hugocortes.dev
