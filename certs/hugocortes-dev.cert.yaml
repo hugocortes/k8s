@@ -1,0 +1,22 @@
+---
+
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: hugocortes-dev
+  namespace: istio-system
+spec:
+  secretName: hugocortes-dev-tls
+  issuerRef:
+    name: letsencrypt-prod
+  commonName: hugocortes.dev
+  dnsNames:
+  - hugocortes.dev
+  - blog.hugocortes.dev
+  acme:
+    config:
+    - http01:
+        ingressClass: istio
+      domains:
+      - hugocortes.dev
+      - blog.hugocortes.dev
