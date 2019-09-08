@@ -24,33 +24,33 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: ssl
+          serviceName: echo
           servicePort: http
   - host: homelabprojects.dev
     http:
       paths:
       - path: /
         backend:
-          serviceName: ssl
+          serviceName: echo
           servicePort: http
   - host: api.homelabprojects.dev
     http:
       paths:
       - path: /
         backend:
-          serviceName: ssl
+          serviceName: echo
           servicePort: http
   - host: auth.homelabprojects.dev
     http:
       paths:
       - path: /
         backend:
-          serviceName: ssl
+          serviceName: echo
           servicePort: http
   - host: blog.homelabprojects.dev
     http:
       paths:
       - path: /
         backend:
-          serviceName: ssl
+          serviceName: echo
           servicePort: http

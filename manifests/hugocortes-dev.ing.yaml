@@ -22,12 +22,12 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: ssl
+          serviceName: echo
           servicePort: http
   - host: blog.hugocortes.dev
     http:
       paths:
       - path: /
         backend:
-          serviceName: ssl
+          serviceName: echo
           servicePort: http
