@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ssl
+  name: echo
   namespace: istio-system
 spec:
   selector:
@@ -32,7 +32,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ssl
+  name: echo
   namespace: istio-system
 spec:
   selector:
