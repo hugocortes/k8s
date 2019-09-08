@@ -2,6 +2,24 @@
 halyard:
   image:
     tag: 1.23.1
+  additionalScripts:
+    enabled: false
+    create: true
+    data:
+      enable_helm_artifact.sh: |-
+        echo "enabling helm artifact"
+        $HAL_COMMAND config artifact helm enable
+        $HAL_COMMAND config artifact helm account add stable \
+          --repository https://storage.googleapis.com/homelabprojects-public
+      enable_gcs.sh: |-
+        echo "enabling gcs artifact"
+        $HAL_COMMAND config artifact gcs enable
+        $HAL_COMMAND config artifact gcs account add gcs \
+          --json-path /opt/gcs/key.json
+      enable_no_auth_http.hs: |-
+        echo "enabling http artifact"
+        $HAL_COMMAND config artifact http enable
+        $HAL_COMMAND config artifact http account add http-no-auth
   resources:
     requests:
       memory: 500Mi
