@@ -11,6 +11,8 @@ halyard:
         $HAL_COMMAND config artifact helm enable
         $HAL_COMMAND config artifact helm account add stable \
           --repository https://storage.googleapis.com/homelabprojects-public
+        $HAL_COMMAND config artifact helm account add openfaas \
+          --repository https://openfaas.github.io/faas-netes
       enable_gcs.sh: |-
         echo "enabling gcs artifact"
         $HAL_COMMAND config artifact gcs enable
