@@ -4,7 +4,8 @@ nfs:
   server: server.home.lan
   path: /mnt/hdd/k8s
   mountOptions:
-  - vers=4
+  - tcp
+  - nfsvers=4
 resources:
   limits:
    cpu: 100m
