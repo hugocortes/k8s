@@ -13,6 +13,8 @@ halyard:
           --repository https://storage.googleapis.com/homelabprojects-public
         $HAL_COMMAND config artifact helm account add openfaas \
           --repository https://openfaas.github.io/faas-netes
+        $HAL_COMMAND config artifact helm account add chartmuseum \
+          --repository http://chartmuseum-chartmuseum.storage.svc.cluster.local:8080
       enable_gcs.sh: |-
         echo "enabling gcs artifact"
         $HAL_COMMAND config artifact gcs enable
