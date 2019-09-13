@@ -40,3 +40,5 @@ spinnakerFeatureFlags:
   - pipeline-templates
 minio:
   enabled: false
+gcs:
+  enabled: true

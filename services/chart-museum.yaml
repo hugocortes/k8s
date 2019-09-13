@@ -4,6 +4,8 @@ env:
     ALLOW_OVERWRITE: true
     DISABLE_API: false
     DISABLE_METRICS: false
+    STORAGE: google
+    STORAGE_GOOGLE_PREFIX: charts
 resources:
  limits:
    cpu: 50m
@@ -15,3 +17,6 @@ persistence:
   enabled: true
   accessMode: ReadWriteOnce
   size: 8Gi
+gcp:
+  secret:
+    enabled: true
