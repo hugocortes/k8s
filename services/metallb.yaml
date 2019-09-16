@@ -15,3 +15,5 @@ speaker:
     limits:
       cpu: 100m
       memory: 100Mi
+prometheus:
+  scrapeAnnotations: true
