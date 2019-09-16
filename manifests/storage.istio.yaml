@@ -6,10 +6,10 @@ apiVersion: authentication.istio.io/v1alpha1
 kind: Policy
 metadata:
   name: permissive
-  namespace: openfaas
+  namespace: storage
 spec:
   targets:
-  - name: prometheus
+  - name: redis-metrics
   peers:
   - mtls:
       mode: PERMISSIVE
@@ -19,10 +19,10 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
-  name: openfaas-prometheus-permissive
-  namespace: openfaas
+  name: redis-prometheus-permissive
+  namespace: storage
 spec:
-  host: prometheus
+  host: redis-metrics
   trafficPolicy:
     tls:
       mode: DISABLE
