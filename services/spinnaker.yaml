@@ -23,7 +23,6 @@ halyard:
       enable_no_auth_http.hs: |-
         echo "enabling http artifact"
         $HAL_COMMAND config artifact http enable
-        $HAL_COMMAND config artifact http account add http-no-auth
   resources:
     requests:
       memory: 500Mi
