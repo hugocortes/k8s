@@ -11,3 +11,10 @@ persistence:
 gcp:
   secret:
     enabled: true
+resources:
+ limits:
+   cpu: 75m
+   memory: 128Mi
+ requests:
+   cpu: 50m
+   memory: 64Mi
