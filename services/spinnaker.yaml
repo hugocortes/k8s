@@ -1,5 +1,6 @@
 # spinnaker custom settings
 halyard:
+  spinnakerVersion: 1.16.1
   image:
     tag: 1.23.1
   additionalScripts:
@@ -14,7 +15,7 @@ halyard:
         $HAL_COMMAND config artifact helm account add openfaas \
           --repository https://openfaas.github.io/faas-netes
         $HAL_COMMAND config artifact helm account add chartmuseum \
-          --repository http://chartmuseum-chartmuseum.storage.svc.cluster.local:8080
+          --repository http://chartmuseum-chartmuseum.storage:8080
       enable_gcs.sh: |-
         echo "enabling gcs artifact"
         $HAL_COMMAND config artifact gcs enable
