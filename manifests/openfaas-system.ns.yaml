@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: openfaas-fn
+  name: openfaas-system-fn
   labels:
     istio-injection: enabled
 
@@ -12,6 +12,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: openfaas
+  name: openfaas-system
   labels:
     istio-injection: enabled
