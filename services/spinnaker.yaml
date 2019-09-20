@@ -45,3 +45,7 @@ minio:
   enabled: false
 gcs:
   enabled: true
+redis:
+  enabled: false
+  external:
+    host: redis-master.storage

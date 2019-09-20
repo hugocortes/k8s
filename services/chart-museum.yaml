@@ -6,17 +6,8 @@ env:
     DISABLE_METRICS: false
     STORAGE: google
     STORAGE_GOOGLE_PREFIX: charts
-resources:
- limits:
-   cpu: 50m
-   memory: 64Mi
- requests:
-   cpu: 25m
-   memory: 32Mi
 persistence:
   enabled: true
-  accessMode: ReadWriteOnce
-  size: 8Gi
 gcp:
   secret:
     enabled: true
