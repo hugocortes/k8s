@@ -19,6 +19,10 @@ metrics:
       cpu: 125m
   securityContext:
     enabled: true
+master:
+  podAnnotations:
+    prometheus.io/port: "9187"
+    prometheus.io/scrape: "true"
 livenessProbe:
   enabled: true
   initialDelaySeconds: 60
