@@ -41,6 +41,7 @@ spinnakerFeatureFlags:
   - jobs
   - pipeline-templates
   - managed-pipeline-templates-v2-ui
+  - artifacts-rewrite
 minio:
   enabled: false
 gcs:

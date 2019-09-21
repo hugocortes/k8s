@@ -10,6 +10,13 @@ replication:
   applicationName: main
 metrics:
   enabled: true
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 50m
+    limits:
+      memory: 128Mi
+      cpu: 125m
   securityContext:
     enabled: true
 livenessProbe:
@@ -26,3 +33,10 @@ readinessProbe:
   timeoutSeconds: 5
   failureThreshold: 6
   successThreshold: 1
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 125m
+  limits:
+    memory: 256Mi
+    cpu: 250m
