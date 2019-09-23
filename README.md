@@ -1,180 +1,266 @@
 # k8s
-simple kubernetes deployments
+personal bare-metal kubernetes setup
 
-## Running Locally
+# install
 
-Prereqs:
-* Install [Minikube](https://kubernetes.io/docs/setup/minikube/).
-* Install [Skaffold](https://github.com/GoogleContainerTools/skaffold#installation)
-* Install [Kustomize](https://github.com/kubernetes-sigs/kustomize/blob/master/INSTALL.md)
-
-1. `minikube start`
-2. `skaffold dev --filename <desired service skaffold yaml>`
-  - To track local changes updates `workspace` to local project directory
-3. Navigate to `http://192.168.99.100:31000/status`
-4. While `skaffold` is running, any changes made will rebuild
-
-## Debugging Locally
-
-### NodeJS minikube
-
-Prereqs:
-* Install [prereqs](#running-locally)
-* Install [Squash](https://github.com/solo-io/squash/tree/master/docs/install)
-* Install [VS Code Squash Plugin](https://marketplace.visualstudio.com/items?itemName=ilevine.squash)
-1. `minikube start`
-2. `kubectl proxy`
-3. `skaffold dev --filename <desired service skaffold yaml>` (Must run with `NODE_ENV=local`)
-4. Update `workspace` to local project directory
-5. Add the following settings to VSCode
-```json
-"vs-squash.squash-server-url": "http://localhost:8001/api/v1/namespaces/squash/services/squash-server:http-squash-api/proxy/api/v2",
-"vs-squash.process-name": "node",
-"vs-squash.remotePath": "/app"
-```
-6. Run command in VSCode: `Squash Debug Container` > `Desired Pod` > `NodeJS8`
-7. Debugger will breakpoint on connect by default
-8. Ready to debug!
-
-## Cluster Setup
-
-1. Install [kubernetes](https://kubernetes.io/docs/setup/independent/install-kubeadm/)
-2. Master node setup
+1. install kubernetes using [kubespray](https://github.com/kubernetes-sigs/kubespray):
 ```sh
-kubeadm init --pod-network-cidr 10.244.0.0/16
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
+# clone kubespray
+git clone https://github.com/kubernetes-sigs/kubespray.git # or ssh
+cd kubespray/
+cp inventory/sample/* inventory
+
+# add entries to `inventory.ini`
+vim inventory/inventory.ini
+
+# change network plugin to flannel
+vim inventory/group_vars/k8s-cluster/k8s-cluster.yml
+
+-kube_network_plugin: calico
++kube_network_plugin: flannel
+
+# install helm
+vim inventory/group_vars/k8s-cluster/addons.yml
+
+-helm_enabled: false
++helm_enabled: true
+
+# run kubernetes installation
+ansible-playbook -i inventory/inventory.cfg cluster.yml -b -v
+
+# Retrieve k8s config
+cat /etc/kubernetes/admin.conf
 ```
-3. Install Flannel
+2. install [istio](https://istio.io/docs/setup/kubernetes/install/helm/#installation-steps)
 ```sh
-kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+helm install --name istio-init \
+  --namespace istio-system \
+  istio.io/istio-init
+
+kubectl label namespace istio-system certmanager.k8s.io/disable-validation=true
+kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.6/deploy/manifests/00-crds.yaml
+
+helm install --name istio \
+  --namespace istio-system \
+  -f services/istio.yaml \
+  istio.io/istio
+
+# add istio injection to namespaces
+kubectl apply -f manifests/istio-injection.yaml
 ```
-4. Join other nodes by using:
-- `sudo kubeadm join --token=<TOKEN> <IP>`
-5. Install [helm](https://docs.helm.sh/using_helm/#installing-helm)
-6. Add Helm RBAC
+3. install nfs provisioner (requires configured NFS server)
 ```sh
-# add service account
-kubectl create serviceaccount --namespace kube-system tiller
-kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
-```
-7. Install MetalLB
-```sh
-helm install --name metallb \
-  --namespace metallb \
-  -f services/metallb-values.yaml \
-  stable/metallb
-```
-8. Install NFS provisioner
-```sh
-# Requires a configured nfs server
+# requires nfs-common on all nodes!
+sudo apt-get install -y nfs-common
+
 helm install --name nfs-client \
-  --namespace kube-system \
-  -f services/nfs-client-values.yaml \
+  --namespace storage \
+  -f services/nfs-client.yaml \
   stable/nfs-client-provisioner
 ```
-9. Install Consul
+4. install redis
 ```sh
-helm install --name consul \
-  -f services/consul-values.yaml \
-  stable/consul
+REDIS_NAMESPACE=storage
+REDIS_AUTH_FILE=./.redis-pass
+REDIS_AUTH_SECRET=redis-auth
+
+kubectl create secret generic $REDIS_AUTH_SECRET \
+  --namespace $REDIS_NAMESPACE \
+  --from-file redis-password=$REDIS_AUTH_FILE
+
+helm install --name redis \
+  --namespace $REDIS_NAMESPACE \
+  -f services/redis.yaml \
+  --set existingSecret=$REDIS_AUTH_SECRET \
+  stable/redis
 ```
-10. Install Internal Traefik
+5. install spinnaker
 ```sh
-# Internal Traefik
-helm install --name traefik-internal \
-  -f services/traefik-int-values.yaml \
-  stable/traefik
+# create necessary files
+SPIN_DOCKER_USER_FILE=./.spin-docker-user
+SPIN_DOCKER_PASS_FILE=./.spin-docker-pass
+SPIN_GCP_BUCKET_FILE=./.spin-gcp-bucket
 
-# Dev Traefik
-helm install --name traefik-dev \
-  -f services/traefik-dev-values.yaml \
-  stable/traefik
+SPIN_NAMESPACE=spin-system
+SPIN_DOCKER_SECRET=regcred
+SPIN_GCP_ACCOUNT=spinnaker-gcp-account
+SPIN_GCP_SECRET=spinnaker-gcp
+SPIN_GCP_JSON_KEY=key.json
+SPIN_GCP_JSON_FILE=$HOME/.gcp/$SPIN_GCP_ACCOUNT.json
+SPIN_GCP_PROJECT=$(gcloud info --format='value(config.project)')
 
-# External Traefik
-helm install --name traefik-external \
-  -f services/traefik-ext-values.yaml \
-  stable/traefik
+# create service account
+./scripts/create-service-account.sh $SPIN_GCP_ACCOUNT $HOME/.gcp/$SPIN_GCP_ACCOUNT.json
+
+# create required secrets
+kubectl create secret docker-registry $SPIN_DOCKER_SECRET \
+  --namespace $SPIN_NAMESPACE \
+  --docker-server=https://index.docker.io/v1/ \
+  --docker-username=$(cat $SPIN_DOCKER_USER_FILE) \
+  --docker-password=$(cat $SPIN_DOCKER_PASS_FILE)
+
+kubectl create secret generic $SPIN_GCP_SECRET \
+  --namespace $SPIN_NAMESPACE \
+  --from-file=$SPIN_GCP_JSON_KEY=$SPIN_GCP_JSON_FILE
+
+# spinnaker
+helm install --name spin \
+  --namespace $SPIN_NAMESPACE \
+  -f services/spinnaker.yaml \
+  --set dockerRegistryAccountSecret=$SPIN_DOCKER_SECRET \
+  --set gcs.project=$SPIN_GCP_PROJECT \
+  --set gcs.bucket=$SPIN_GCP_BUCKET \
+  --set gcs.secretName=$SPIN_GCP_SECRET \
+  --set redis.external.password=$(cat $REDIS_AUTH_FILE) \
+  --timeout 1200 \
+  stable/spinnaker
+
+# hal configuration
+kubectl exec --namespace $SPIN_NAMESPACE -it spinnaker-spinnaker-halyard-0 bash
+# see scripts/spininitialhalconfig.sh
 ```
-11. Install Kubernetes Dashboard
-```sh
-helm install --name k8s-dashboard \
-  -f services/k8s-dashboard-values.yaml \
-  stable/kubernetes-dashboard
 
-# retrieving token
-kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+---
+
+from here on, spinnaker can be used to deploy rest of services
+
+---
+
+6. install [metallb](https://github.com/helm/charts/tree/master/stable/metallb) (TODO prometheus support)
+```sh
+helm install --name metallb \
+  --namespace network-system \
+  -f services/metallb.yaml \
+  stable/metallb
 ```
-12. Install [Openfaas](https://github.com/openfaas/faas-netes/tree/master/chart/openfaas#deploy-openfaas)
+7. install [nginx](https://github.com/helm/charts/tree/master/stable/nginx-ingress)
 ```sh
-# Create the namespaces
-kubectl apply -f https://raw.githubusercontent.com/openfaas/faas-netes/master/namespaces.yml
+# nginx is only used as workaround to auto renew certificates as istio does not
+# do so with SDS and mTLS enabled
+helm install --name nginx \
+  --namespace network-system \
+  --set rbac.create=true \
+  stable/nginx-ingress
 
-# Generate secret
-PASSWORD=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
-
-kubectl -n openfaas create secret generic basic-auth \
---from-literal=basic-auth-user=admin \
---from-literal=basic-auth-password="$PASSWORD"
+# configure certificates handled by nginx
+kubectl apply -f manifests/echo.yaml
+kubectl apply -f manifests/homelabprojects-dev.ing.yaml
+kubectl apply -f manifests/hugocortes-dev.ing.yaml
+# configure istio gateways
+kubectl apply -f manifests/homelabprojects-dev.gw.yaml
+kubectl apply -f manifests/hugocortes-dev.gw.yaml
+```
+8. install [openfaas](https://github.com/openfaas/faas-netes/tree/master/chart/openfaas#deploy-openfaas)
+```sh
+# create necessary files
+OPENFAAS_USER_FILE=./.openfaas-user
+OPENFAAS_PASS_FILE=./.openfaas-pass
+OPENFAAS_NAMESPACE=openfaas-system
 
 # add repo
 helm repo add openfaas https://openfaas.github.io/faas-netes/
+helm repo update
 
-helm repo update \
-&& helm upgrade openfaas \
-  --install openfaas/openfaas \
-  --namespace openfaas \
-  -f services/openfaas-values.yaml
+# create ns
+kubectl create -f manifests/openfaas-system.ns.yaml 
+
+# generate secret
+kubectl create secret generic basic-auth \
+  --namespace $OPENFAAS_NAMESPACE \
+  --from-file=basic-auth-user=$OPENFAAS_USER_FILE \
+  --from-file=basic-auth-password=$OPENFAAS_PASS_FILE
+
+# openfaas
+helm install --name openfaas \
+  --namespace $OPENFAAS_NAMESPACE \
+  --set functionNamespace=openfaas-system-fn \
+  --set basic_auth=true \
+  --set istio.mtls=true \
+  openfaas/openfaas
+
+# if istio grafana was installed, add permissive policy on prometheus
+kubectl create -f manifests/openfaas-system.istio.yaml
 ```
-13. Install squash server and client:
+9. install chart museum
 ```sh
-kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contrib/kubernetes/squash-server.yml
-kubectl create -f https://raw.githubusercontent.com/solo-io/squash/master/contrib/kubernetes/squash-client.yml
+# enter variables:
+# CM_USER=
+# CM_PASS=
+# CM_GCP_BUCKET=
+
+# CM_BASIC_JSON=$(echo -n \[\{\"username\":\"$CM_USER\"\\,\"password\":\"$CM_PASS\"\}\] | sed "s/^/'/;s/$/'/")
+# --set env.secret.BASIC_AUTH_USER=$CM_USER \
+# --set env.secret.BASIC_AUTH_PASS=$CM_PASS \
+
+CM_NAMESPACE=storage
+CM_GCP_ACCOUNT=chart-museum-gcp-account
+CM_GCP_SECRET=chart-museum-gcp
+CM_GCP_JSON_KEY=key.json
+CM_GCP_JSON_FILE=$HOME/.gcp/$CM_GCP_ACCOUNT.json
+
+# create service account
+./scripts/create-service-account.sh $CM_GCP_ACCOUNT $HOME/.gcp/$CM_GCP_ACCOUNT.json
+
+# create required secrets
+kubectl create secret generic $CM_GCP_SECRET \
+  --namespace $CM_NAMESPACE \
+  --from-file=$CM_GCP_JSON_KEY=$CM_GCP_JSON_FILE
+
+# chart museum
+helm install --name chartmuseum \
+  --namespace $CM_NAMESPACE \
+  -f services/chart-museum.yaml \
+  --set env.open.CHART_URL=http://chartmuseum-chartmuseum.$CM_NAMESPACE:8080 \
+  --set env.open.STORAGE_GOOGLE_BUCKET=$CM_GCP_BUCKET \
+  --set gcp.secret.name=$CM_GCP_SECRET \
+  --set gcp.secret.key=$CM_GCP_JSON_KEY \
+  stable/chartmuseum
+
+# upload chart museum ui helm chart
+kubectl port-forward --namespace $CM_NAMESPACE svc/chartmuseum-chartmuseum 8080:8080
+helm package services/chart-museum-ui
+curl --data-binary "@chart-museum-ui-0.1.0.tgz" http://localhost:8080/api/charts
+
+# chart museum ui
+helm install --name chart-museum-ui \
+  --namespace $CM_NAMESPACE \
+  --set chartMuseum=http://chartmuseum-chartmuseum:8080 \
+  services/chart-museum-ui
 ```
-14. Install Spinnaker
+10. install postgres
 ```sh
-# install spinnaker
-helm install --name spinnaker \
-  --namespace spinnaker \
-  -f services/spinnaker-values.yaml \
-  stable/spinnaker
+# create necessary files
+POSTGRES_REPL_USER_FILE=./.postgres-repl-user
+POSTGRES_REPL_PASS_FILE=./.postgres-repl-pass
+POSTGRES_PASS_FILE=./.postgres-pass
 
-# adding GCS and GCR spinnaker access
-# https://cloud.google.com/solutions/continuous-delivery-spinnaker-kubernetes-engine
-# spinnaker customization (post-install)
-kubectl exec --namespace spinnaker -it spinnaker-spinnaker-halyard-0 bash
+POSTGRES_NAMESPACE=storage
+POSTGRES_AUTH_SECRET=postgres-auth
 
-# redeploy after changes
-hal deploy apply
+kubectl create secret generic $POSTGRES_AUTH_SECRET \
+  --namespace $POSTGRES_NAMESPACE \
+  --from-file=postgresql-replication-password=$POSTGRES_REPL_PASS_FILE \
+  --from-file=postgresql-password=$POSTGRES_PASS_FILE
+
+helm install --name postgres \
+  --namespace $POSTGRES_NAMESPACE \
+  -f services/postgresql.yaml \
+  --set global.postgresql.existingSecret=$POSTGRES_AUTH_SECRET \
+  --set replication.user=$(cat $POSTGRES_REPL_USER_FILE) \
+  stable/postgresql
 ```
-15. Configure Monitoring
-```
-kubectl create namespace monitoring
-
-helm install --name prometheus \
-  --namespace monitoring \
-  -f services/prometheus-values.yaml \
-  stable/prometheus
-
-helm install --name grafana \ 
-  --namespace monitoring \
-  -f services/grafana-values.yaml \
-  stable/grafana
-```
-
-Misc:
-- When deploying apps on local cluster, use: `kubectl port-forward svc/<serviceName> -n <namespace> <LOCAL_PORT>:<servicePort>`
-- The following script will allow you to create Basic auth secrets (required for spinnaker ingress which needs spinnaker-auth named secret)
+11. install kubernetes dashboard
 ```sh
-#!/bin/bash
-if [[ $# -eq 0 ]] ; then
-    echo "Run the script with the required auth user and namespace for the secret: ${0} [name] [user] [namespace]"
-    exit 0
-fi
-printf "${2}:`openssl passwd -apr1`\n" >> ingress_auth.tmp
-kubectl delete secret -n ${3} ${1}
-kubectl create secret generic ${1} --from-file=ingress_auth.tmp -n ${3}
-rm ingress_auth.tmp
+helm install --name dashboard \
+  -f services/dashboard.yaml \
+  stable/kubernetes-dashboard
+
+# retrieving token
+kubectl get secret kubernetes-dashboard-token-<UNIQUE> -o jsonpath='{.data.token}' | base64 --decode
 ```
+
+# misc
+grafana dashboards used:
+* [openfaas](https://grafana.com/grafana/dashboards/3434)
+* [redis](https://grafana.com/grafana/dashboards/763)
+* [postgresql](https://grafana.com/grafana/dashboards/9628)
