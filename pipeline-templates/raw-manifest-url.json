@@ -1,0 +1,82 @@
+{
+  "schema": "v2",
+  "variables": [
+    {
+      "type": "string",
+      "defaultValue": "default",
+      "description": "Namespace target.",
+      "name": "namespace"
+    },
+    {
+      "type": "string",
+      "defaultValue": "",
+      "description": "Raw manifest url.",
+      "name": "rawManifestURL"
+    }
+  ],
+  "id": "b5bf5631-6def-4535-bb79-4180ff3fc415",
+  "protect": false,
+  "metadata": {
+    "name": "Raw Manifest URL",
+    "description": "Deploys a single manifest from URL.",
+    "owner": "contact@hugocortes.com",
+    "scopes": ["global"]
+  },
+  "pipeline": {
+    "lastModifiedBy": "anonymous",
+    "updateTs": "0",
+    "parameterConfig": [],
+    "limitConcurrent": true,
+    "keepWaitingPipelines": false,
+    "description": "",
+    "triggers": [],
+    "notifications": [],
+    
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": {
+          "artifactAccount": "no-auth-http-account",
+          "name": "rawManifestURL",
+          "reference": "${ templateVariables.rawManifestURL }",
+          "type": "http/file"
+        },
+        "matchArtifact": {
+          "artifactAccount": "no-auth-http-account",
+          "name": "rawManifestURL",
+          "reference": "${ templateVariables.rawManifestURL }",
+          "type": "http/file"
+        },
+        "useDefaultArtifact": true,
+        "usePriorArtifact": false,
+        "displayName": "rawManifestURL",
+        "id": "rawManifestURLArtifactID"
+      }
+    ],
+    "stages": [
+      {
+        "account": "default",
+        "cloudProvider": "kubernetes",
+        "manifestArtifactAccount": "no-auth-http-account",
+        "manifestArtifactId": "rawManifestURLArtifactID",
+        "name": "Deploy (Manifest)",
+        "namespaceOverride": "${ templateVariables.namespace }",
+        "moniker": {
+          "app": "${ execution['application'] }"
+        },
+        "notifications": [],
+        "refId": "1",
+        "relationships": {
+          "loadBalancers": [],
+          "securityGroups": []
+        },
+        "requiredArtifactIds": [],
+        "requisiteStageRefIds": [],
+        "sendNotifications": false,
+        "source": "artifact",
+        "failPipeline": true,
+        "skipExpressionEvaluation": false,
+        "type": "deployManifest"
+      }
+    ]
+  }
+}
