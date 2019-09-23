@@ -22,4 +22,3 @@ spec:
       credentialName: hugocortes-dev-tls
     hosts:
     - hugocortes.dev
-    - blog.hugocortes.dev

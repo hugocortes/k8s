@@ -1,0 +1,25 @@
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: blog-hugocortes-dev
+  namespace: istio-system
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    certmanager.k8s.io/cluster-issuer: letsencrypt
+    ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  tls:
+  - hosts:
+    - blog.hugocortes.dev
+    secretName: blog-hugocortes-dev-tls
+  rules:
+  - host: blog.hugocortes.dev
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: echo
+          servicePort: http

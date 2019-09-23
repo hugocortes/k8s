@@ -3,7 +3,7 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: hugocortes
+  name: blog-homelabprojects-dev
   namespace: istio-system
   annotations:
     kubernetes.io/ingress.class: nginx
@@ -13,18 +13,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - hugocortes.dev
-    - blog.hugocortes.dev
-    secretName: hugocortes-dev-tls
+    - blog.homelabprojects.dev
+    secretName: blog-homelabprojects-dev-tls
   rules:
-  - host: hugocortes.dev
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: echo
-          servicePort: http
-  - host: blog.hugocortes.dev
+  - host: blog.homelabprojects.dev
     http:
       paths:
       - path: /
