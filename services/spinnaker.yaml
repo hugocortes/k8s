@@ -36,6 +36,7 @@ dockerRegistries:
   address: index.docker.io
   repositories:
     - hugocortes/me
+    - hugocortes/blue-green
 spinnakerFeatureFlags:
   - artifacts
   - jobs

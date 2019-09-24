@@ -19,7 +19,7 @@
   "metadata": {
     "name": "Raw Manifest URL",
     "description": "Deploys a single manifest from URL.",
-    "owner": "contact@hugocortes.com",
+    "owner": "contact@hugocortes.dev",
     "scopes": ["global"]
   },
   "pipeline": {
