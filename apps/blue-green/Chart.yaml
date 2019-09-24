@@ -1,11 +1,11 @@
 apiVersion: v1
-appVersion: 1.0.0
-description: blue green deployment sample
+appVersion: "1.0"
+description: Blue Green deployment example. 
 name: blue-green
-version: 1.0.0
-home: https://blue-green.hugocortes.me
+version: 0.1.0
+home: https://blue-green.hugocortes.dev
 sources:
 - https://github.com/hugocortes/blue-green
 maintainers:
-- name: hugocortes
-  email: contact@hugocortes.me
+- name: Hugo Cortes
+  email: contact@hugocortes.dev

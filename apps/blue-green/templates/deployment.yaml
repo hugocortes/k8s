@@ -1,21 +1,11 @@
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "blue-green.fullname" . }}
-  namespace: {{ .Release.Namespace}}
   labels:
-    app.kubernetes.io/name: {{ include "blue-green.name" . }}
-    helm.sh/chart: {{ include "blue-green.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "blue-green.labels" . | indent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
-  minReadySeconds: 10
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 50%
-      maxUnavailable: 50%
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "blue-green.name" . }}
@@ -26,6 +16,10 @@ spec:
         app.kubernetes.io/name: {{ include "blue-green.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}"
@@ -37,22 +31,22 @@ spec:
           livenessProbe:
             httpGet:
               path: /
-              port: {{ .Values.service.port }}
+              port: http
           readinessProbe:
             httpGet:
               path: /
-              port: {{ .Values.service.port }}
+              port: http
           resources:
-{{ toYaml .Values.resources | indent 12 }}
-    {{- with .Values.nodeSelector }}
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
       nodeSelector:
-{{ toYaml . | indent 8 }}
-    {{- end }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     {{- with .Values.affinity }}
       affinity:
-{{ toYaml . | indent 8 }}
+        {{- toYaml . | nindent 8 }}
     {{- end }}
     {{- with .Values.tolerations }}
       tolerations:
-{{ toYaml . | indent 8 }}
+        {{- toYaml . | nindent 8 }}
     {{- end }}
