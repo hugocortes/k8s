@@ -2,12 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "me.fullname" . }}
-  namespace: {{ .Release.Namespace}}
   labels:
-    app.kubernetes.io/name: {{ include "me.name" . }}
-    helm.sh/chart: {{ include "me.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "me.labels" . | indent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:

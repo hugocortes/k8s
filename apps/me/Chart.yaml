@@ -1,11 +1,11 @@
 apiVersion: v1
-appVersion: 1.0.0
-description: resume
+appVersion: "1.0"
+description: Resume static site.
 name: me
-version: 1.0.0
-home: https://resume.hugocortes.me
+version: 0.1.0
+home: https://hugocortes.dev
 sources:
 - https://github.com/hugocortes/me
 maintainers:
-- name: hugocortes
-  email: contact@hugocortes.me
+- name: Hugo Cortes
+  email: contact@hugocortes.dev

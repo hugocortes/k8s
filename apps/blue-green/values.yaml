@@ -22,15 +22,14 @@ ingress:
   hosts:
     - host: chart-example.local
       paths: []
-
   tls: []
 
 resources:
   limits:
-    cpu: 10m
+    cpu: 25m
     memory: 32Mi
   requests:
-    cpu: 5m
+    cpu: 10m
     memory: 16Mi
 
 nodeSelector: {}
