@@ -4,7 +4,7 @@ configInline:
   - name: ip-space
     protocol: layer2
     addresses:
-    - 192.168.10.30-192.168.10.35
+    - 192.168.10.80-192.168.10.81
 controller:
   resources:
     limits:
