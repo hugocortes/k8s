@@ -1,10 +1,13 @@
-# redis custom settings
+---
+
 cluster:
-  slaveCount: 1
+  slaveCount: 2
 metrics:
   enabled: true
 serviceAccount:
   create: true
 usePasswordFile: true
 volumePermissions:
-  enabled: true
+  enabled: false
+persistence:
+  existingClaim: redis
