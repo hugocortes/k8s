@@ -1,17 +1,18 @@
-# nfs client custom settings
+---
+
 replicaCount: 2
 nfs:
-  server: server.home.lan
-  path: /mnt/hdd/k8s
+  server: freenas.internal.corteshq.net
+  path: /mnt/storage/ds0/p0/k8s
   mountOptions:
   - tcp
   - nfsvers=4
 resources:
-  limits:
-   cpu: 100m
-   memory: 128Mi
   requests:
-   cpu: 100m
+   cpu: 125m
    memory: 128Mi
+  limits:
+   cpu: 250m
+   memory: 256Mi
 storageClass:
   defaultClass: true
