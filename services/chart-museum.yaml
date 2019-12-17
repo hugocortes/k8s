@@ -1,4 +1,5 @@
-# chart museum custom settings
+---
+
 env:
   open:
     ALLOW_OVERWRITE: true
@@ -12,9 +13,9 @@ gcp:
   secret:
     enabled: true
 resources:
- limits:
-   cpu: 75m
-   memory: 128Mi
  requests:
-   cpu: 50m
-   memory: 64Mi
+   cpu: 125m
+   memory: 128Mi
+ limits:
+   cpu: 250m
+   memory: 256Mi
