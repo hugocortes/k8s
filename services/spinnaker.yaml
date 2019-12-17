@@ -1,10 +1,13 @@
-# spinnaker custom settings
+---
+
 halyard:
-  spinnakerVersion: 1.16.1
+  spinnakerVersion: 1.17.4
   image:
-    tag: 1.23.1
+    tag: 1.28.0
   additionalScripts:
-    enabled: false
+    enabled: true
+    configMapName: halyard-config
+    configMapKey: config.sh
     create: true
     data:
       enable_helm_artifact.sh: |-
@@ -24,13 +27,31 @@ halyard:
       enable_no_auth_http.hs: |-
         echo "enabling http artifact"
         $HAL_COMMAND config artifact http enable
+  additionalProfileConfigMaps:
+    data:
+      gate-local.yml:
+        security:
+          oauth2:
+            client:
+              # clientId: 
+              # clientSecret:
+              # userAuthorizationUri:
+              # accessTokenUri:
+              scope: ""
+            resource: {}
+              # userInfoUri:
+            userInfoMapping:
+              email: email
+              firstName: given_name
+              lastName: family_name
+              username: preferred_username
   resources:
     requests:
+      cpu: 250m
       memory: 500Mi
-      cpu: 100m
     limits:
+      cpu: 500m
       memory: 1Gi
-      cpu: 200m
 dockerRegistries:
 - name: dockerhub
   address: index.docker.io
@@ -39,7 +60,6 @@ dockerRegistries:
     - hugocortes/blue-green
 spinnakerFeatureFlags:
   - artifacts
-  - jobs
   - pipeline-templates
   - managed-pipeline-templates-v2-ui
   - artifacts-rewrite
@@ -50,4 +70,4 @@ gcs:
 redis:
   enabled: false
   external:
-    host: redis-master.storage
+    host: redis-master.storage.svc.cluster.local
