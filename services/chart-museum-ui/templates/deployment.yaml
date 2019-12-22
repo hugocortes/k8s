@@ -1,6 +1,6 @@
 {{ $fullName := include "chart-museum-ui.fullname" . }}
 
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ $fullName }}
