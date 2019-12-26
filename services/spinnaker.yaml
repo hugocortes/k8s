@@ -19,6 +19,8 @@ halyard:
           --repository https://openfaas.github.io/faas-netes
         $HAL_COMMAND config artifact helm account add chartmuseum \
           --repository http://chartmuseum-chartmuseum.storage:8080
+        $HAL_COMMAND config artifact helm account add jetstack \
+          --repository https://charts.jetstack.io
       enable_gcs.sh: |-
         echo "enabling gcs artifact"
         $HAL_COMMAND config artifact gcs enable
@@ -37,7 +39,7 @@ halyard:
               # clientSecret:
               # userAuthorizationUri:
               # accessTokenUri:
-              scope: ""
+              scope: "openid email profile"
             resource: {}
               # userInfoUri:
             userInfoMapping:
@@ -45,6 +47,10 @@ halyard:
               firstName: given_name
               lastName: family_name
               username: preferred_username
+          tomcat:
+            protocolHeader: X-Forwarded-Proto
+            remoteIpHeader: X-Forwarded-For
+            internalProxies: .*
   resources:
     requests:
       cpu: 250m
