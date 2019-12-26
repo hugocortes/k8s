@@ -15,3 +15,13 @@ metadata:
   name: spin-system
   labels:
     istio-injection: enabled
+
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress-system
+  labels:
+    istio-injection: enabled
+    certmanager.k8s.io/disable-validation: "true"
