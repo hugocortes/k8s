@@ -51,6 +51,7 @@ certmanager:
 gateways:
   istio-ingressgateway:
     enabled: true
+    loadBalancerIP: ""
     sds:
       enabled: true
     resources:

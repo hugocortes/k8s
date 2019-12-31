@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: openfaas-system-fn
+  name: storage
   labels:
     istio-injection: enabled
 
@@ -12,6 +12,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: openfaas-system
+  name: spin-system
   labels:
     istio-injection: enabled

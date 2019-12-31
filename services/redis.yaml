@@ -9,5 +9,3 @@ serviceAccount:
 usePasswordFile: true
 volumePermissions:
   enabled: false
-persistence:
-  existingClaim: redis

@@ -2,8 +2,8 @@
 
 replicaCount: 2
 nfs:
-  server: freenas.internal.corteshq.net
-  path: /mnt/storage/ds0/p0/k8s
+  server: ""
+  path: ""
   mountOptions:
   - tcp
   - nfsvers=4

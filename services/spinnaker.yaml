@@ -1,7 +1,7 @@
 ---
 
 halyard:
-  spinnakerVersion: 1.17.4
+  spinnakerVersion: 1.17.5
   image:
     tag: 1.28.0
   additionalScripts:
@@ -21,6 +21,8 @@ halyard:
           --repository http://chartmuseum-chartmuseum.storage:8080
         $HAL_COMMAND config artifact helm account add jetstack \
           --repository https://charts.jetstack.io
+        $HAL_COMMAND config artifact helm account add istio.io \
+          --repository https://storage.googleapis.com/istio-release/releases/1.3.5/charts
       enable_gcs.sh: |-
         echo "enabling gcs artifact"
         $HAL_COMMAND config artifact gcs enable
@@ -39,7 +41,7 @@ halyard:
               # clientSecret:
               # userAuthorizationUri:
               # accessTokenUri:
-              scope: "openid email profile"
+              scope: openid email profile
             resource: {}
               # userInfoUri:
             userInfoMapping:
@@ -77,3 +79,13 @@ redis:
   enabled: false
   external:
     host: redis-master.storage.svc.cluster.local
+kubeConfig:
+  enabled: true
+  secretName: kubeconfig
+  secretKey: config
+  contexts:
+  - prometheus
+  - hestia
+  deploymentContext: prometheus
+  omittedNameSpaces:
+  - kube-public
