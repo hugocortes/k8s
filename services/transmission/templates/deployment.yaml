@@ -36,6 +36,9 @@ spec:
             - name: http
               containerPort: 9091
               protocol: TCP
+            - name: peer
+              containerPort: {{ .Values.peer.port }}
+              protocol: TCP
           livenessProbe:
             initialDelaySeconds: 15
             periodSeconds: 5
