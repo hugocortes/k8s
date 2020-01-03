@@ -1,0 +1,47 @@
+# Default values for gatekeeper.
+
+replicaCount: 1
+
+image:
+  repository: keycloak/keycloak-gatekeeper
+  pullPolicy: IfNotPresent
+  tag: latest
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+service:
+  type: ClusterIP
+  port: 3000
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+metrics:
+  enabled: false
+
+config:
+  clientID: ""
+  clientSecret: ""
+  encryptionKey: ""
+  yaml:
+    listen: :3000
+    discovery-url: ""
