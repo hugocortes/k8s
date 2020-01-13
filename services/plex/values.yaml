@@ -1,0 +1,48 @@
+# Default values for plex.
+
+image:
+  repository: plexinc/pms-docker
+  pullPolicy: IfNotPresent
+  tag: plexpass
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+service:
+  loadBalancerIP: ""
+  port: 32400
+
+podAnnotations: {}
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+persistence:
+  existingClaim: ""
+  existingMoviesClaim: ""
+  existingTVClaim: ""
+  existingTranscodeClaim: ""
+
+env: []
+#  - name: TZ
+#    value: America/Los_Angeles
+#  - name: CHANGE_CONFIG_DIR_OWNERSHIP
+#    value: "false"

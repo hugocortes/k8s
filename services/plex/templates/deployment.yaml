@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "plex.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "plex.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "plex.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "plex.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      hostNetwork: true
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: ADVERTISE_IP
+              value: "http://{{ .Values.service.loadBalancerIP }}:32400/"
+          {{- with .Values.env }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+          - name: conf
+            mountPath: /config
+          - name: movies
+            mountPath: /data/movies
+          - name: tv
+            mountPath: /data/tv-shows
+          - name: transcode
+            mountPath: /transcode
+          ports:
+            - name: http
+              containerPort: 32400
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            httpGet:
+              path: /identity
+              port: 32400
+          readinessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            httpGet:
+              path: /identity
+              port: 32400
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+      - name: conf
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim }}
+      - name: movies
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingMoviesClaim }}
+      - name: tv
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingTVClaim }}
+      - name: transcode
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingTranscodeClaim }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
