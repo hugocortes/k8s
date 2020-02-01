@@ -23,10 +23,10 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if .Values.env }}
+        {{- if .Values.env }}
           env:
             {{- toYaml .Values.env | nindent 12 }}
-          {{- end }}
+        {{- end }}
           volumeMounts:
           - name: conf
             mountPath: /config
@@ -37,7 +37,7 @@ spec:
               containerPort: 9091
               protocol: TCP
             - name: peer
-              containerPort: {{ .Values.peer.port }}
+              containerPort: {{ .Values.service.port.peer }}
               protocol: TCP
           livenessProbe:
             initialDelaySeconds: 15
@@ -58,10 +58,10 @@ spec:
       - name: downloads
         persistentVolumeClaim:
           claimName: {{ .Values.persistence.existingDownloadsClaim }}
-      {{- with .Values.nodeSelector }}
+    {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+    {{- end }}
     {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}

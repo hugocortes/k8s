@@ -60,10 +60,10 @@ spec:
       - name: movies
         persistentVolumeClaim:
           claimName: {{ .Values.persistence.existingMoviesClaim }}
-      {{- with .Values.nodeSelector }}
+    {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+    {{- end }}
     {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}

@@ -10,6 +10,10 @@ image:
 nameOverride: ""
 fullnameOverride: ""
 
+serviceAccount:
+  create: true
+  name: ""
+
 podSecurityContext: {}
   # fsGroup: 2000
 
@@ -23,12 +27,9 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 9091
-
-peer:
-  type: LoadBalancer
-  # loadBalancerIP: 
-  port: 51413
+  port:
+    web: 9091
+    peer: 51413
 
 resources: {}
   # limits:
