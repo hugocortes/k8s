@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "playground.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "playground.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "playground.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "playground.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "playground.serviceAccountName" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          {{- if .Values.existingFirstConfig }}
+            - name: CONFIG_FIRST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.existingFirstConfig }}
+                  key: config-first
+          {{- end }}
+          {{- if .Values.existingSecondConfig }}
+            - name: CONFIG_SECOND
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.existingSecondConfig }}
+                  key: config-second
+          {{- end }}
+          {{- if .Values.existingThirdConfig }}
+            - name: CONFIG_THIRD
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.existingThirdConfig }}
+                  key: config-third
+          {{- end }}
+          {{- if .Values.existingFirstSecret }}
+            - name: SECRET_FIRST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.existingFirstSecret }}
+                  key: secret-first
+          {{- end }}
+          {{- if .Values.existingSecondSecret }}
+            - name: SECRET_SECOND
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.existingSecondSecret }}
+                  key: secret-second
+          {{- end }}
+          {{- if .Values.existingThirdSecret }}
+            - name: SECRET_THIRD
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.existingThirdSecret }}
+                  key: secret-third
+          {{- end }}
+          volumeMounts:
+          - name: first
+            mountPath: /usr/share/nginx/html
+          - name: second
+            mountPath: /tmp/second
+          - name: third
+            mountPath: /tmp/third
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            tcpSocket:
+              port: http
+          readinessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            tcpSocket:
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+      - name: first
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingFirstClaim }}
+      - name: second
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingSecondClaim }}
+      - name: third
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingThirdClaim }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
