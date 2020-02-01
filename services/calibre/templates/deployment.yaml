@@ -24,10 +24,10 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- with .Values.env }}
+        {{- with .Values.env }}
           env:
             {{- toYaml . | nindent 12 }}
-          {{- end }}
+        {{- end }}
           volumeMounts:
           - name: conf
             mountPath: /config
@@ -56,10 +56,10 @@ spec:
       - name: library
         persistentVolumeClaim:
           claimName: {{ .Values.persistence.existingLibraryClaim }}
-      {{- with .Values.nodeSelector }}
+    {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+    {{- end }}
     {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}

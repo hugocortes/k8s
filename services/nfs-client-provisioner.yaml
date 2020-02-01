@@ -1,18 +1,18 @@
----
-
-replicaCount: 2
+replicaCount: 1
 nfs:
   server: ""
   path: ""
   mountOptions:
   - tcp
   - nfsvers=4
+  - rw
+  - port=2049
 resources:
   requests:
-   cpu: 125m
+   cpu: 50m
    memory: 128Mi
   limits:
-   cpu: 250m
-   memory: 256Mi
+   cpu: 75m
+   memory: 128Mi
 storageClass:
   defaultClass: true
