@@ -12,14 +12,19 @@ serviceAccount:
   create: true
   name: ""
 
+podAnnotations: {}
+
 podSecurityContext: {}
   # fsGroup: 2000
 
 service:
+  type: ClusterIP
   loadBalancerIP: ""
-  port: 32400
-
-podAnnotations: {}
+  port:
+    pms: 32400
+    pds: 32469
+    pc: 3005
+    pcr: 8324
 
 resources: {}
   # limits:
@@ -41,8 +46,13 @@ persistence:
   existingTVClaim: ""
   existingTranscodeClaim: ""
 
+config:
+  transcodeOnHost: false
+
 env: []
 #  - name: TZ
 #    value: America/Los_Angeles
 #  - name: CHANGE_CONFIG_DIR_OWNERSHIP
 #    value: "false"
+#  - name: ADVERTISE_IP
+#    value: "http://:32400/"

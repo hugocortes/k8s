@@ -6,12 +6,26 @@ metadata:
   labels:
     {{- include "plex.labels" . | nindent 4 }}
 spec:
-  type: LoadBalancer
-  loadBalancerIP: {{ .Values.loadBalancerIP }}
+  type: {{ .Values.service.type }}
+{{- if eq .Values.service.type "LoadBalancer" }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+{{- end }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - port: {{ .Values.service.port.pms }}
+      targetPort: media-server
       protocol: TCP
-      name: http
+      name: media-server
+    - port: {{ .Values.service.port.pc }}
+      targetPort: companion
+      protocol: TCP
+      name: companion
+    - port: {{ .Values.service.port.pcr }}
+      targetPort: companion-roku
+      protocol: TCP
+      name: companion-roku
+    - port: {{ .Values.service.port.pds }}
+      targetPort: dlna-server
+      protocol: TCP
+      name: dlna-server
   selector:
     {{- include "plex.selectorLabels" . | nindent 4 }}

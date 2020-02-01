@@ -23,7 +23,6 @@ spec:
     spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      hostNetwork: true
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -31,8 +30,6 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: ADVERTISE_IP
-              value: "http://{{ .Values.service.loadBalancerIP }}:32400/"
           {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -46,9 +43,18 @@ spec:
           - name: transcode
             mountPath: /transcode
           ports:
-            - name: http
-              containerPort: 32400
-              protocol: TCP
+          - name: media-server
+            containerPort: 32400
+            protocol: TCP
+          - name: dlna-server
+            containerPort: 32469
+            protocol: TCP 
+          - name: companion
+            containerPort: 3005
+            protocol: TCP 
+          - name: companion-roku
+            containerPort: 8324
+            protocol: TCP 
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -73,13 +79,19 @@ spec:
       - name: tv
         persistentVolumeClaim:
           claimName: {{ .Values.persistence.existingTVClaim }}
+    {{- if .Values.config.transcodeOnHost }}
+      - name: transcode
+        hostPath:
+          path: /tmp
+    {{- else }}
       - name: transcode
         persistentVolumeClaim:
           claimName: {{ .Values.persistence.existingTranscodeClaim }}
-      {{- with .Values.nodeSelector }}
+    {{- end }}
+    {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+    {{- end }}
     {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
