@@ -1,0 +1,281 @@
+{
+  "schema": "v2",
+  "id": "deploy-helm-app",
+  "metadata": {
+    "name": "Deploy Helm Application",
+    "description": "Deploys a helm app and its dependencies if requested.",
+    "owner": "contact@hugocortes.dev",
+    "scopes": ["global"]
+  },
+  "protect": true,
+
+  "variables": [
+    {
+      "type": "boolean",
+      "name": "enablePubSubTrigger",
+      "description": "whether pubsub trigger should be enabled",
+      "defaultValue": false
+    },
+    {
+      "type": "boolean",
+      "name": "enableDockerTrigger",
+      "description": "whether docker trigger should be enabled",
+      "defaultValue": false
+    },
+    {
+      "type": "string",
+      "name": "kubernetesCluster",
+      "description": "kubernetes cluster to deploy to",
+      "defaultValue": "default"
+    },
+    {
+      "type": "string",
+      "name": "kubernetesNamespace",
+      "description": "kubernetes namespace to deploy to",
+      "defaultValue": "default"
+    },
+    {
+      "type": "string",
+      "name": "helmRepository",
+      "description": "helm repository to pull chart from",
+      "defaultValue": "stable"
+    },
+    {
+      "type": "string",
+      "name": "helmChartName",
+      "description": "helm chart name to pull",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "helmChartVersion",
+      "description": "helm chart version to pull",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "helmInstallationName",
+      "description": "helm installation name to be applied",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "helmImageKey",
+      "description": "helm chart yaml key location to override image tag",
+      "defaultValue": "image.tag"
+    },
+    {
+      "type": "string",
+      "name": "helmValuesPath",
+      "description": "helm chart values path stored in gcs",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "registryName",
+      "description": "registry name configured in spinnaker",
+      "defaultValue": "dockerhub"
+    },
+    {
+      "type": "string",
+      "name": "registryUrl",
+      "description": "registry base url",
+      "defaultValue": "index.docker.io"
+    },
+    {
+      "type": "string",
+      "name": "registryRepository",
+      "description": "registry repository where image is hosted",
+      "defaultValue": "library"
+    },
+    {
+      "type": "string",
+      "name": "registryImage",
+      "description": "registry image name",
+      "defaultValue": "nginx"
+    },
+    {
+      "type": "string",
+      "name": "registryRegexTag",
+      "description": "registry regex match to apply on new images",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "pubSubName",
+      "description": "google pubsub subscription name",
+      "defaultValue": ""
+    },
+    {
+      "type": "list",
+      "name": "gcsArtifacts",
+      "description": "additional dependencies required for application that have been uploaded to gcs",
+      "defaultValue": []
+    }
+  ],
+  "pipeline": {
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "updateTs": "0",
+
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": {
+          "customKind": true,
+          "id": "default-artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}"
+        },
+        "displayName": "image",
+        "id": "artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}",
+        "matchArtifact": {
+          "artifactAccount": "docker-registry",
+          "id": "match-artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}",
+          "name": "${templateVariables.registryUrl}/${templateVariables.registryRepository}/${templateVariables.registryImage}",
+          "type": "docker/image"
+        },
+        "useDefaultArtifact": false,
+        "usePriorArtifact": true
+      },
+      {
+        "defaultArtifact": {
+          "artifactAccount": "gcs",
+          "id": "default-artifact-${templateVariables.helmChartName}-values",
+          "name": "${templateVariables.helmValuesPath}",
+          "reference": "${templateVariables.helmValuesPath}",
+          "type": "gcs/object"
+        },
+        "displayName": "values",
+        "id": "artifact-${templateVariables.helmChartName}-values",
+        "matchArtifact": {
+          "artifactAccount": "gcs",
+          "id": "match-artifact-${templateVariables.helmChartName}-values",
+          "name": "${templateVariables.helmValuesPath}",
+          "type": "gcs/object"
+        },
+        "useDefaultArtifact": true,
+        "usePriorArtifact": false
+      }
+    ],
+    "notifications": [],
+    "parameterConfig": [
+      {
+        "default": "false",
+        "description": "whether dependencies should be deployed",
+        "hasOptions": true,
+        "label": "deps",
+        "name": "deps",
+        "options": [
+          {
+            "value": "true"
+          },
+          {
+            "value": "false"
+          }
+        ],
+        "pinned": false,
+        "required": false
+      }
+    ],
+    "triggers": [
+      {
+        "account": "${templateVariables.registryName}",
+        "description": "(Docker Registry) ${templateVariables.registryName}: ${templateVariables.registryRepository}/${templateVariables.registryImage}",
+        "enabled": "${templateVariables.enableDockerTrigger}",
+        "expectedArtifactIds": [
+          "artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}",
+          "artifact-${templateVariables.helmChartName}-values"
+        ],
+        "organization": "${templateVariables.registryRepository}",
+        "registry": "${templateVariables.registryUrl}",
+        "repository": "${templateVariables.registryRepository}/${templateVariables.registryImage}",
+        "tag": "${templateVariables.registryRegexTag}",
+        "type": "docker"
+      },
+      {
+        "attributeConstraints": {
+          "eventType": "OBJECT_FINALIZE"
+        },
+        "enabled": "${templateVariables.enablePubSubTrigger}",
+        "expectedArtifactIds": [
+          "artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}",
+          "artifact-${templateVariables.helmChartName}-values"
+        ],
+        "payloadConstraints": {
+          "name": "${templateVariables.helmValuesPath.replaceAll(\"(^gs:\\/\\/\\w+\\/)\", \"\")}"
+        },
+        "pubsubSystem": "google",
+        "subscriptionName": "${templateVariables.pubSubName}",
+        "type": "pubsub"
+      }
+    ],
+    "stages": [
+      {
+        "evaluateOverrideExpressions": true,
+        "expectedArtifacts": [
+          {
+            "defaultArtifact": {
+              "customKind": true,
+              "id": "default-artifact-${templateVariables.helmChartName}-rendered"
+            },
+            "displayName": "${templateVariables.helmInstallationName}",
+            "id": "artifact-${templateVariables.helmChartName}-rendered",
+            "matchArtifact": {
+              "artifactAccount": "embedded-artifact",
+              "id": "match-artifact-${templateVariables.helmChartName}-rendered",
+              "name": "${templateVariables.helmInstallationName}",
+              "type": "embedded/base64"
+            },
+            "useDefaultArtifact": false,
+            "usePriorArtifact": false
+          }
+        ],
+        "inputArtifacts": [
+          {
+            "account": "${templateVariables.helmRepository}",
+            "artifact": {
+              "artifactAccount": "${templateVariables.helmRepository}",
+              "id": "artifact-${templateVariables.helmChartName}-chart",
+              "name": "${templateVariables.helmChartName}",
+              "type": "helm/chart",
+              "version": "${templateVariables.helmChartVersion}"
+            }
+          },
+          {
+            "account": "gcs",
+            "id": "artifact-${templateVariables.helmChartName}-values"
+          }
+        ],
+        "name": "render helm chart",
+        "namespace": "${templateVariables.kubernetesNamespace}",
+        "outputName": "${templateVariables.helmInstallationName}",
+        "overrides": {
+          "${templateVariables.helmImageKey}": "${#triggerResolvedArtifactByType(\"docker/image\").version}"
+        },
+        "refId": "1",
+        "requisiteStageRefIds": [
+        ],
+        "templateRenderer": "HELM2",
+        "type": "bakeManifest"
+      },
+      {
+        "application": "terraform",
+        "failPipeline": true,
+        "name": "deploy app",
+        "pipeline": "70645b28-289f-40ba-976b-dd533a8987cb",
+        "pipelineParameters": {
+          "cluster": "${templateVariables.kubernetesCluster}",
+          "namespace": "${templateVariables.kubernetesNamespace}",
+          "application": "${execution.application}",
+          "artifacts": "${templateVariables.gcsArtifacts}",
+          "deps": "${parameters.deps}"
+        },
+        "refId": "2",
+        "requisiteStageRefIds": [
+          "1"
+        ],
+        "type": "pipeline",
+        "waitForCompletion": true
+      }
+    ]
+  }
+}
