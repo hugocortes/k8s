@@ -2,7 +2,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "chart-museum-ui.name" -}}
+{{- define "chartmuseumui.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -11,7 +11,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "chart-museum-ui.fullname" -}}
+{{- define "chartmuseumui.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -27,6 +27,34 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "chart-museum-ui.chart" -}}
+{{- define "chartmuseumui.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Common labels
+*/}}
+{{- define "chartmuseumui.labels" -}}
+helm.sh/chart: {{ include "chartmuseumui.chart" . }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "chartmuseumui.selectorLabels" . }}
+{{- end -}}
+
+{{/*
+Selector labels
+*/}}
+{{- define "chartmuseumui.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "chartmuseumui.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "chartmuseumui.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+    {{ default (include "chartmuseumui.fullname" .) .Values.serviceAccount.name }}
+{{- else -}}
+    {{ default "default" .Values.serviceAccount.name }}
+{{- end -}}
 {{- end -}}
