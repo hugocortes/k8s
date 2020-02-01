@@ -1,6 +1,5 @@
 {{ $fullName := include "gatekeeper.fullname" . }}
 
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,12 +16,12 @@ spec:
     metadata:
       labels:
         {{- include "gatekeeper.selectorLabels" . | nindent 8 }}
-      {{- if .Values.metrics.enabled }}
+    {{- if .Values.metrics.enabled }}
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/oauth/metrics"
         prometheus.io/port: "3000"
-      {{- end }}
+    {{- end }}
     spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
@@ -38,17 +37,21 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-          - --config=/etc/gatekeeper/config.yaml
-          - --client-id=$(CLIENT_ID)
-          - --client-secret=$(CLIENT_SECRET)
-          - --encryption-key=$(ENCRYPTION_KEY)
+            - --config=/etc/gatekeeper/config.yaml
+            - --client-id=$(CLIENT_ID)
+            - --client-secret=$(CLIENT_SECRET)
+            - --encryption-key=$(ENCRYPTION_KEY)
           envFrom:
             - secretRef:
+              {{- if eq .Values.config.existingSecret "" }}
                 name: {{ $fullName }}
+              {{- else }}
+                name: {{ .Values.config.existingSecret }}
+              {{- end }}
                 optional: false
           volumeMounts:
-          - name: config
-            mountPath: /etc/gatekeeper/
+            - name: config
+              mountPath: /etc/gatekeeper/
           ports:
             - name: http
               containerPort: 3000
@@ -64,13 +67,13 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-      - name: config
-        configMap:
-          name: {{ $fullName }}
-      {{- with .Values.nodeSelector }}
+        - name: config
+          configMap:
+            name: {{ $fullName }}
+    {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+    {{- end }}
     {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
