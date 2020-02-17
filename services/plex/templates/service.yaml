@@ -6,6 +6,7 @@ metadata:
   labels:
     {{- include "plex.labels" . | nindent 4 }}
 spec:
+  externalTrafficPolicy: Local
   type: {{ .Values.service.type }}
 {{- if eq .Values.service.type "LoadBalancer" }}
   loadBalancerIP: {{ .Values.service.loadBalancerIP }}
@@ -27,5 +28,11 @@ spec:
       targetPort: dlna-server
       protocol: TCP
       name: dlna-server
+  {{- if .Values.tautulli.enabled }}
+    - port: {{ .Values.tautulli.service.port }}
+      targetPort: tautulli
+      protocol: TCP
+      name: tautulli
+  {{- end }}
   selector:
     {{- include "plex.selectorLabels" . | nindent 4 }}

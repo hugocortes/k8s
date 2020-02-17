@@ -48,11 +48,26 @@ persistence:
 
 config:
   transcodeOnHost: false
+  timezone: America/Los_Angeles
 
 env: []
-#  - name: TZ
-#    value: America/Los_Angeles
 #  - name: CHANGE_CONFIG_DIR_OWNERSHIP
 #    value: "false"
 #  - name: ADVERTISE_IP
 #    value: "http://:32400/"
+
+tautulli:
+  enabled: false
+  image:
+    repository: tautulli/tautulli
+    pullPolicy: IfNotPresent
+    tag: latest
+  service:
+    port: 8181
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi

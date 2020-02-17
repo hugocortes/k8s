@@ -33,6 +33,10 @@ spec:
           {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if .Values.config.timezone }}
+            - name: TZ
+              value: {{ .Values.config.timezone }}
+          {{- end }}
           volumeMounts:
           - name: conf
             mountPath: /config
@@ -60,15 +64,54 @@ spec:
             periodSeconds: 10
             httpGet:
               path: /identity
-              port: 32400
+              port: media-server
           readinessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
             httpGet:
               path: /identity
-              port: 32400
+              port: media-server
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      {{- if .Values.tautulli.enabled }}
+        - name: tautulli
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.tautulli.image.repository }}:{{ .Values.tautulli.image.tag }}"
+          imagePullPolicy: {{ .Values.tautulli.image.pullPolicy }}
+          env:
+          {{- if .Values.config.timezone }}
+            - name: TZ
+              value: {{ .Values.config.timezone }}
+          {{- end }}
+          volumeMounts:
+          - name: conf
+            mountPath: /config
+            subPath: tautulli
+          - name: conf
+            mountPath: /plex_logs
+            subPath: Library/Application Support/Plex Media Server/Logs
+            readOnly: true
+          ports:
+          - name: tautulli
+            containerPort: 8181
+            protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 300
+            periodSeconds: 15
+            failureThreshold: 4
+            httpGet:
+              path: /
+              port: tautulli
+          readinessProbe:
+            initialDelaySeconds: 300
+            periodSeconds: 10
+            httpGet:
+              path: /
+              port: tautulli
+          resources:
+            {{- toYaml .Values.tautulli.resources | nindent 12 }}
+      {{- end }}
       volumes:
       - name: conf
         persistentVolumeClaim:
