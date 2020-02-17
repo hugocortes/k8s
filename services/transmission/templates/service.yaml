@@ -1,20 +1,40 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "transmission.fullname" . }}
+  name: {{ include "transmission.fullname" . }}-tcp
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "transmission.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port.web }}
+    - port: {{ .Values.service.port }}
       targetPort: http
       protocol: TCP
       name: http
-    - port: {{ .Values.service.port.peer }}
-      targetPort: peer
+    - port: 51413
+      targetPort: 51413
       protocol: TCP
-      name: peer
+      name: peer-tcp
+  selector:
+    {{- include "transmission.selectorLabels" . | nindent 4 }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "transmission.fullname" . }}-udp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "transmission.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.peer.type }}
+  loadBalancerIP: {{ .Values.service.peer.loadBalancerIP }}
+  ports:
+    - port: 51413
+      targetPort: 51413
+      protocol: UDP
+      name: peer-udp
   selector:
     {{- include "transmission.selectorLabels" . | nindent 4 }}

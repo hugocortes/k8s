@@ -27,9 +27,10 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port:
-    web: 9091
-    peer: 51413
+  port: 9091
+  peer:
+    type: LoadBalancer
+    loadBalancerIP: ""
 
 resources: {}
   # limits:
