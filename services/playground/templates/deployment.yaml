@@ -68,12 +68,12 @@ spec:
                   key: secret-third
           {{- end }}
           volumeMounts:
-          - name: first
-            mountPath: /usr/share/nginx/html
-          - name: second
-            mountPath: /tmp/second
-          - name: third
-            mountPath: /tmp/third
+            - name: first
+              mountPath: /usr/share/nginx/html
+            - name: second
+              mountPath: /tmp/second
+            - name: third
+              mountPath: /tmp/third
           ports:
             - name: http
               containerPort: 80
@@ -91,15 +91,15 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-      - name: first
-        persistentVolumeClaim:
-          claimName: {{ .Values.persistence.existingFirstClaim }}
-      - name: second
-        persistentVolumeClaim:
-          claimName: {{ .Values.persistence.existingSecondClaim }}
-      - name: third
-        persistentVolumeClaim:
-          claimName: {{ .Values.persistence.existingThirdClaim }}
+        - name: first
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingFirstClaim }}
+        - name: second
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingSecondClaim }}
+        - name: third
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingThirdClaim }}
     {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

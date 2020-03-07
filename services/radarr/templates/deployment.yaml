@@ -28,12 +28,12 @@ spec:
             {{- toYaml .Values.env | nindent 12 }}
           {{- end }}
           volumeMounts:
-          - name: conf
-            mountPath: /config
-          - name: downloads
-            mountPath: /downloads
-          - name: movies
-            mountPath: /movies
+            - name: conf
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+            - name: movies
+              mountPath: /movies
           ports:
             - name: http
               containerPort: 7878
@@ -51,15 +51,15 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-      - name: conf
-        persistentVolumeClaim:
-          claimName: {{ .Values.persistence.existingClaim }}
-      - name: downloads
-        persistentVolumeClaim:
-          claimName: {{ .Values.persistence.existingDownloadsClaim }}
-      - name: movies
-        persistentVolumeClaim:
-          claimName: {{ .Values.persistence.existingMoviesClaim }}
+        - name: conf
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingDownloadsClaim }}
+        - name: movies
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingMoviesClaim }}
     {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

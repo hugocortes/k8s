@@ -27,8 +27,8 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
-          - configMapRef:
-              name: {{ $fullName }}
+            - configMapRef:
+                name: {{ $fullName }}
           ports:
             - name: http
               containerPort: 8080
@@ -44,9 +44,9 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-      - name: config
-        configMap:
-          name: {{ $fullName }}
+        - name: config
+          configMap:
+            name: {{ $fullName }}
     {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

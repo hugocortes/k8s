@@ -38,27 +38,27 @@ spec:
               value: {{ .Values.config.timezone }}
           {{- end }}
           volumeMounts:
-          - name: conf
-            mountPath: /config
-          - name: movies
-            mountPath: /data/movies
-          - name: tv
-            mountPath: /data/tv-shows
-          - name: transcode
-            mountPath: /transcode
+            - name: conf
+              mountPath: /config
+            - name: movies
+              mountPath: /data/movies
+            - name: tv
+              mountPath: /data/tv-shows
+            - name: transcode
+              mountPath: /transcode
           ports:
-          - name: media-server
-            containerPort: 32400
-            protocol: TCP
-          - name: dlna-server
-            containerPort: 32469
-            protocol: TCP 
-          - name: companion
-            containerPort: 3005
-            protocol: TCP 
-          - name: companion-roku
-            containerPort: 8324
-            protocol: TCP 
+            - name: media-server
+              containerPort: 32400
+              protocol: TCP
+            - name: dlna-server
+              containerPort: 32469
+              protocol: TCP 
+            - name: companion
+              containerPort: 3005
+              protocol: TCP 
+            - name: companion-roku
+              containerPort: 8324
+              protocol: TCP 
           livenessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -85,17 +85,17 @@ spec:
               value: {{ .Values.config.timezone }}
           {{- end }}
           volumeMounts:
-          - name: conf
-            mountPath: /config
-            subPath: tautulli
-          - name: conf
-            mountPath: /plex_logs
-            subPath: Library/Application Support/Plex Media Server/Logs
-            readOnly: true
+            - name: conf
+              mountPath: /config
+              subPath: tautulli
+            - name: conf
+              mountPath: /plex_logs
+              subPath: Library/Application Support/Plex Media Server/Logs
+              readOnly: true
           ports:
-          - name: tautulli
-            containerPort: 8181
-            protocol: TCP
+            - name: tautulli
+              containerPort: 8181
+              protocol: TCP
           livenessProbe:
             initialDelaySeconds: 300
             periodSeconds: 15
@@ -113,24 +113,24 @@ spec:
             {{- toYaml .Values.tautulli.resources | nindent 12 }}
       {{- end }}
       volumes:
-      - name: conf
-        persistentVolumeClaim:
-          claimName: {{ .Values.persistence.existingClaim }}
-      - name: movies
-        persistentVolumeClaim:
-          claimName: {{ .Values.persistence.existingMoviesClaim }}
-      - name: tv
-        persistentVolumeClaim:
-          claimName: {{ .Values.persistence.existingTVClaim }}
-    {{- if .Values.config.transcodeOnHost }}
-      - name: transcode
-        hostPath:
-          path: /tmp
-    {{- else }}
-      - name: transcode
-        persistentVolumeClaim:
-          claimName: {{ .Values.persistence.existingTranscodeClaim }}
-    {{- end }}
+        - name: conf
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+        - name: movies
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingMoviesClaim }}
+        - name: tv
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingTVClaim }}
+      {{- if .Values.config.transcodeOnHost }}
+        - name: transcode
+          hostPath:
+            path: /tmp
+      {{- else }}
+        - name: transcode
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingTranscodeClaim }}
+      {{- end }}
     {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
