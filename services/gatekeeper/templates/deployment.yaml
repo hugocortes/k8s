@@ -41,6 +41,9 @@ spec:
             - --client-id=$(CLIENT_ID)
             - --client-secret=$(CLIENT_SECRET)
             - --encryption-key=$(ENCRYPTION_KEY)
+          {{- if .Values.metrics.enabled }}
+            - --enable-metrics
+          {{- end }}
           envFrom:
             - secretRef:
               {{- if eq .Values.config.existingSecret "" }}
