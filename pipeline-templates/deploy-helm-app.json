@@ -24,6 +24,12 @@
     },
     {
       "type": "string",
+      "name": "skipDockerJudgement",
+      "description": "whether judgement can be skipped for automated docker trigger",
+      "defaultValue": "false"
+    },
+    {
+      "type": "string",
       "name": "kubernetesCluster",
       "description": "kubernetes cluster to deploy to",
       "defaultValue": "default"
@@ -201,7 +207,7 @@
           "artifact-${templateVariables.helmChartName}-values"
         ],
         "payloadConstraints": {
-          "name": "${templateVariables.helmValuesPath.replaceAll(\"(^gs:\\/\\/\\w+\\/)\", \"\")}"
+          "name": "${templateVariables.helmValuesPath.replaceAll(\"(^gs:\\/\\/[^\\/]+\\/)\", \"\")}"
         },
         "pubsubSystem": "google",
         "subscriptionName": "${templateVariables.pubSubName}",
@@ -267,7 +273,8 @@
           "namespace": "${templateVariables.kubernetesNamespace}",
           "application": "${execution.application}",
           "artifacts": "${templateVariables.gcsArtifacts}",
-          "deps": "${parameters.deps}"
+          "deps": "${parameters.deps}",
+          "skipJudgement": "${templateVariables.skipDockerJudgement}"
         },
         "refId": "2",
         "requisiteStageRefIds": [
