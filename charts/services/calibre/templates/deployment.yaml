@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "calibre.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "calibre.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "calibre.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "calibre.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "calibre.serviceAccountName" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: USE_CONFIG_DIR
+              value: "true"
+            - name: SET_CONTAINER_TIMEZONE
+              value: "true"
+            - name: CONTAINER_TIMEZONE
+              value: {{ .Values.config.timezone }}
+          volumeMounts:
+            - name: conf
+              mountPath: /calibre-web/config
+              subPath: config
+            - name: conf
+              mountPath: /calibre-web/app
+              subPath: app
+            - name: library
+              mountPath: /books
+          ports:
+            - name: http
+              containerPort: 8083
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            tcpSocket:
+              port: http
+          readinessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            tcpSocket:
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: conf
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+        - name: library
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingLibraryClaim }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

@@ -1,7 +1,0 @@
-bases:
-- ./../../base
-patches:
-- ./../configMap.yaml
-- deployment.yaml
-commonLabels:
-  env: prod
