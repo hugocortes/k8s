@@ -32,6 +32,7 @@ spec:
               mountPath: /config
             - name: downloads
               mountPath: /downloads
+              subPath: complete
             - name: tv
               mountPath: /tv
           ports:
