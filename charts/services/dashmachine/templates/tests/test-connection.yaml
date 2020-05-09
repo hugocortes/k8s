@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "dashmachine.fullname" . }}-test-connection"
+  labels:
+{{ include "dashmachine.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args:  ['{{ include "dashmachine.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never
