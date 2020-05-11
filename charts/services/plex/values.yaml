@@ -18,6 +18,8 @@ podSecurityContext: {}
   # fsGroup: 2000
 
 service:
+  annotations: {}
+  hostNetwork: false
   type: ClusterIP
   loadBalancerIP: ""
   port:

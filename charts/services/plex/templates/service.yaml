@@ -1,3 +1,4 @@
+{{- if not .Values.service.hostNetwork }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -5,8 +6,11 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "plex.labels" . | nindent 4 }}
+{{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
 spec:
-  externalTrafficPolicy: Local
   type: {{ .Values.service.type }}
 {{- if eq .Values.service.type "LoadBalancer" }}
   loadBalancerIP: {{ .Values.service.loadBalancerIP }}
@@ -36,3 +40,4 @@ spec:
   {{- end }}
   selector:
     {{- include "plex.selectorLabels" . | nindent 4 }}
+{{- end }}
