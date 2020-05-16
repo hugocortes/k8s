@@ -1,0 +1,64 @@
+# Default values for miniflux.
+
+replicaCount: 1
+
+image:
+  repository: miniflux/miniflux
+  pullPolicy: IfNotPresent
+  tag: latest
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+database:
+  host: ""
+  port: 5432
+  user: ""
+  password: ""
+  database: ""
+
+admin:
+  create: true
+  user: ""
+  password: ""
+
+oidc:
+  provider: oidc
+  userCreation: "0"
+  clientId: ""
+  clientSecret: ""
+  redirectUrl: ""
+  discoveryEndpoint: ""
