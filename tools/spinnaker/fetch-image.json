@@ -1,0 +1,107 @@
+{
+  "schema": "v2",
+  "id": "fetch-image",
+  "metadata": {
+    "name": "Fetch image",
+    "description": "Fetches the provided image.",
+    "owner": "contact@hugocortes.dev",
+    "scopes": ["global"]
+  },
+  "protect": true,
+
+  "variables": [
+    {
+      "type": "boolean",
+      "name": "enableDockerTrigger",
+      "description": "whether docker trigger should be enabled",
+      "defaultValue": false
+    },
+    {
+      "type": "string",
+      "name": "registryName",
+      "description": "registry name configured in spinnaker",
+      "defaultValue": "dockerhub"
+    },
+    {
+      "type": "string",
+      "name": "registryUrl",
+      "description": "registry base url",
+      "defaultValue": "index.docker.io"
+    },
+    {
+      "type": "string",
+      "name": "registryRepository",
+      "description": "registry repository where image is hosted",
+      "defaultValue": "library"
+    },
+    {
+      "type": "string",
+      "name": "registryImage",
+      "description": "registry image name",
+      "defaultValue": "nginx"
+    },
+    {
+      "type": "string",
+      "name": "registryRegexTag",
+      "description": "registry regex match to apply on new images",
+      "defaultValue": ""
+    }
+  ],
+  "pipeline": {
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "updateTs": "0",
+
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": {
+          "customKind": true,
+          "id": "default-artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}"
+        },
+        "displayName": "image",
+        "id": "artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}",
+        "matchArtifact": {
+          "artifactAccount": "docker-registry",
+          "id": "match-artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}",
+          "name": "${templateVariables.registryUrl}/${templateVariables.registryRepository}/${templateVariables.registryImage}",
+          "type": "docker/image"
+        },
+        "useDefaultArtifact": false,
+        "usePriorArtifact": true
+      }
+    ],
+    "notifications": [],
+    "parameterConfig": [],
+    "triggers": [
+      {
+        "account": "${templateVariables.registryName}",
+        "description": "(Docker Registry) ${templateVariables.registryName}: ${templateVariables.registryRepository}/${templateVariables.registryImage}",
+        "enabled": "${templateVariables.enableDockerTrigger}",
+        "expectedArtifactIds": [
+          "artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}"
+        ],
+        "organization": "${templateVariables.registryRepository}",
+        "registry": "${templateVariables.registryUrl}",
+        "repository": "${templateVariables.registryRepository}/${templateVariables.registryImage}",
+        "tag": "${templateVariables.registryRegexTag}",
+        "type": "docker"
+      }
+    ],
+    "stages": [
+      {
+        "failOnFailedExpressions": true,
+        "name": "noop",
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "type": "evaluateVariables",
+        "variables": [
+          {
+            "key": "noop",
+            "value": "\"${''}\""
+          }
+        ]
+      }
+    ]
+  }
+}
