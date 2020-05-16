@@ -23,6 +23,18 @@
       "defaultValue": false
     },
     {
+      "type": "boolean",
+      "name": "deployDeps",
+      "description": "whether dependencies should be deployed",
+      "defaultValue": false
+    },
+    {
+      "type": "boolean",
+      "name": "deployApp",
+      "description": "whether app should be deployed",
+      "defaultValue": true
+    },
+    {
       "type": "string",
       "name": "skipDockerJudgement",
       "description": "whether judgement can be skipped for automated docker trigger",
@@ -78,9 +90,15 @@
     },
     {
       "type": "string",
-      "name": "registryName",
-      "description": "registry name configured in spinnaker",
-      "defaultValue": "dockerhub"
+      "name": "registryApplication",
+      "description": "registry application name",
+      "defaultValue": "registry"
+    },
+    {
+      "type": "string",
+      "name": "registryPipelineId",
+      "description": "registry pipeline id",
+      "defaultValue": ""
     },
     {
       "type": "string",
@@ -165,6 +183,23 @@
     "notifications": [],
     "parameterConfig": [
       {
+        "default": "true",
+        "description": "whether app should be deployed",
+        "hasOptions": true,
+        "label": "deploy",
+        "name": "deploy",
+        "options": [
+          {
+            "value": "true"
+          },
+          {
+            "value": "false"
+          }
+        ],
+        "pinned": true,
+        "required": true
+      },
+      {
         "default": "false",
         "description": "whether dependencies should be deployed",
         "hasOptions": true,
@@ -184,18 +219,17 @@
     ],
     "triggers": [
       {
-        "account": "${templateVariables.registryName}",
-        "description": "(Docker Registry) ${templateVariables.registryName}: ${templateVariables.registryRepository}/${templateVariables.registryImage}",
-        "enabled": "${templateVariables.enableDockerTrigger}",
+        "application": "${templateVariables.registryApplication}",
+        "enabled": true,
         "expectedArtifactIds": [
           "artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}",
           "artifact-${templateVariables.helmChartName}-values"
         ],
-        "organization": "${templateVariables.registryRepository}",
-        "registry": "${templateVariables.registryUrl}",
-        "repository": "${templateVariables.registryRepository}/${templateVariables.registryImage}",
-        "tag": "${templateVariables.registryRegexTag}",
-        "type": "docker"
+        "pipeline": "${templateVariables.registryPipelineId}",
+        "status": [
+          "successful"
+        ],
+        "type": "pipeline"
       },
       {
         "attributeConstraints": {
@@ -215,6 +249,58 @@
       }
     ],
     "stages": [
+      {
+        "name": "if docker deploy is enabled",
+        "notifications": [
+          {
+            "address": "contact@hugocortes.dev",
+            "level": "stage",
+            "message": {
+              "stage.failed": {
+                "text": "retrieved new docker image but not deploying!\n<br>\nimage: ${trigger.parentExecution.trigger.artifacts.?[type==\"docker/image\"][0].name}\n<br>\ntag: <b>${trigger.parentExecution.trigger.artifacts.?[type==\"docker/image\"][0].version}</b>\n<br>"
+              }
+            },
+            "type": "email",
+            "when": [
+              "stage.failed"
+            ]
+          }
+        ],
+        "preconditions": [
+          {
+            "context": {
+              "expression": "!(trigger.parentExecution.trigger.type==\"docker\"&&trigger.type==\"pipeline\"&&!${templateVariables.enableDockerTrigger})"
+            },
+            "failPipeline": true,
+            "type": "expression"
+          }
+        ],
+        "refId": "1",
+        "sendNotifications": true,
+        "type": "checkPreconditions"
+      },
+      {
+        "application": "terraform",
+        "failPipeline": true,
+        "name": "deploy deps",
+        "pipeline": "9b5264f9-030d-4cd3-ae2e-0db08a65f5c2",
+        "pipelineParameters": {
+          "application": "${execution.application}",
+          "artifacts": "${templateVariables.gcsArtifacts}",
+          "cluster": "${templateVariables.kubernetesCluster}",
+          "namespace": "${templateVariables.kubernetesNamespace}"
+        },
+        "refId": "2",
+        "requisiteStageRefIds": [
+          "1"
+        ],
+        "stageEnabled": {
+          "expression": "${templateVariables.deployDeps} || parameters.deps == \"true\"",
+          "type": "expression"
+        },
+        "type": "pipeline",
+        "waitForCompletion": true
+      },
       {
         "evaluateOverrideExpressions": true,
         "expectedArtifacts": [
@@ -257,8 +343,9 @@
         "overrides": {
           "${templateVariables.helmImageKey}": "${#triggerResolvedArtifactByType(\"docker/image\").version}"
         },
-        "refId": "1",
+        "refId": "3",
         "requisiteStageRefIds": [
+          "1"
         ],
         "templateRenderer": "HELM2",
         "type": "bakeManifest"
@@ -269,17 +356,21 @@
         "name": "deploy app",
         "pipeline": "70645b28-289f-40ba-976b-dd533a8987cb",
         "pipelineParameters": {
+          "application": "${execution.application}",
           "cluster": "${templateVariables.kubernetesCluster}",
           "namespace": "${templateVariables.kubernetesNamespace}",
-          "application": "${execution.application}",
-          "artifacts": "${templateVariables.gcsArtifacts}",
-          "deps": "${parameters.deps}",
+          "pipelineTrigger": "${trigger.parentExecution.trigger}",
           "skipJudgement": "${templateVariables.skipDockerJudgement}"
         },
-        "refId": "2",
+        "refId": "4",
         "requisiteStageRefIds": [
-          "1"
+          "2",
+          "3"
         ],
+        "stageEnabled": {
+          "expression": "${templateVariables.deployApp} && parameters.deploy == \"true\"",
+          "type": "expression"
+        },
         "type": "pipeline",
         "waitForCompletion": true
       }
