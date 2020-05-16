@@ -1,4 +1,3 @@
-{{- if not .Values.service.hostNetwork }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -40,4 +39,3 @@ spec:
   {{- end }}
   selector:
     {{- include "plex.selectorLabels" . | nindent 4 }}
-{{- end }}
