@@ -1,32 +1,42 @@
 ---
 
 halyard:
-  spinnakerVersion: 1.18.0
+  spinnakerVersion: 1.20.0
   image:
-    tag: 1.29.0
+    tag: 1.34.0
+  additionalSecrets:
+    name: ""
   additionalScripts:
     enabled: true
-    configMapName: halyard-config
+    configMapName: spinnaker-halyard-config
     configMapKey: config.sh
     create: true
     data:
       enable_helm_artifact.sh: |-
         echo "enabling helm artifact"
         $HAL_COMMAND config artifact helm enable
-        $HAL_COMMAND config artifact helm account add stable \
-          --repository https://storage.googleapis.com/homelabprojects-public
-        $HAL_COMMAND config artifact helm account add openfaas \
-          --repository https://openfaas.github.io/faas-netes
+        $HAL_COMMAND config artifact helm account add bitnami \
+          --repository https://charts.bitnami.com/bitnami
         $HAL_COMMAND config artifact helm account add chartmuseum \
           --repository http://chartmuseum.storage:8080
-        $HAL_COMMAND config artifact helm account add jetstack \
-          --repository https://charts.jetstack.io
-        $HAL_COMMAND config artifact helm account add istio.io \
-          --repository https://storage.googleapis.com/istio-release/releases/1.3.5/charts
         $HAL_COMMAND config artifact helm account add codecentric \
           --repository https://codecentric.github.io/helm-charts
+        $HAL_COMMAND config artifact helm account add elastic \
+          --repository https://helm.elastic.co
+        $HAL_COMMAND config artifact helm account add influxdata \
+          --repository https://helm.influxdata.com
+        $HAL_COMMAND config artifact helm account add istio-1.4 \
+          --repository https://storage.googleapis.com/istio-release/releases/1.4.4/charts
+        $HAL_COMMAND config artifact helm account add istio-1.5 \
+          --repository https://storage.googleapis.com/istio-release/releases/1.5.1/charts
+        $HAL_COMMAND config artifact helm account add jetstack \
+          --repository https://charts.jetstack.io
+        $HAL_COMMAND config artifact helm account add openfaas \
+          --repository https://openfaas.github.io/faas-netes
         $HAL_COMMAND config artifact helm account add pomerium \
           --repository https://helm.pomerium.io
+        $HAL_COMMAND config artifact helm account add stable \
+          --repository https://storage.googleapis.com/homelabprojects-public
       enable_gcs.sh: |-
         echo "enabling gcs artifact"
         $HAL_COMMAND config artifact gcs enable
@@ -35,25 +45,80 @@ halyard:
       enable_no_auth_http.sh: |-
         echo "enabling http artifact"
         $HAL_COMMAND config artifact http enable
+      enable_metrics.sh: |-
+        echo "enabling prometheus"
+        $HAL_COMMAND config metric-stores prometheus enable
+      configure_kubernetes.sh: |-
+        echo "configuring kubernetes accounts"
+        $HAL_COMMAND config provider kubernetes account edit prometheus \
+          --live-manifest-calls true
+        $HAL_COMMAND config provider kubernetes account edit hestia \
+          --live-manifest-calls true
+        $HAL_COMMAND config provider kubernetes account edit athens \
+          --live-manifest-calls true
+      configure_component_sizing.sh: |-
+        echo "configuring component sizing"
+        # requires replica=1
+        $HAL_COMMAND config deploy component-sizing echo edit \
+          --container-limits-cpu 250m \
+          --container-requests-cpu 250m \
+          --container-limits-memory 1Gi \
+          --container-requests-memory 1Gi
+        $HAL_COMMAND config deploy component-sizing igor edit \
+          --container-limits-cpu 250m \
+          --container-requests-cpu 250m \
+          --container-limits-memory 1Gi \
+          --container-requests-memory 1Gi
+
+        # requires more resources
+        $HAL_COMMAND config deploy component-sizing clouddriver edit \
+          --container-limits-cpu 500m \
+          --container-requests-cpu 500m \
+          --container-limits-memory 1.5Gi \
+          --container-requests-memory 1.5Gi \
+          --replicas 1
+        $HAL_COMMAND config deploy component-sizing orca edit \
+          --container-limits-cpu 500m \
+          --container-requests-cpu 500m \
+          --container-limits-memory 1.5Gi \
+          --container-requests-memory 1.5Gi \
+          --replicas 1
+
+        $HAL_COMMAND config deploy component-sizing deck edit \
+          --container-limits-cpu 250m \
+          --container-requests-cpu 250m \
+          --container-limits-memory 1Gi \
+          --container-requests-memory 1Gi
+        $HAL_COMMAND config deploy component-sizing front50 edit \
+          --container-limits-cpu 250m \
+          --container-requests-cpu 250m \
+          --container-limits-memory 1Gi \
+          --container-requests-memory 1Gi
+        $HAL_COMMAND config deploy component-sizing gate edit \
+          --container-limits-cpu 250m \
+          --container-requests-cpu 250m \
+          --container-limits-memory 1Gi \
+          --container-requests-memory 1Gi
+        $HAL_COMMAND config deploy component-sizing rosco edit \
+          --container-limits-cpu 250m \
+          --container-requests-cpu 250m \
+          --container-limits-memory 1Gi \
+          --container-requests-memory 1Gi
   additionalProfileConfigMaps:
     data:
-      igor-local.yml:
-        spinnaker:
-          pollInterval: 30
-          pollingSafeguard:
-            # to prevent igor sending notifications to all pipelines on redis flush:
-            # curl -X POST $IGOR/admin/pollers/fastforward/dockerTagMonitor
-            # https://github.com/spinnaker/spinnaker/issues/2767
-            itemUpperThreshold: 35000
+      clouddriver-local.yml:
+        services:
+          redis:
+            baseUrl: ""
       echo-local.yml:
         mail:
           enabled: true
-          from: ""
+          # from: ""
         spring:
           mail:
-            host: smtp.gmail.com
-            username: ""
-            password: ""
+            host: smtp.zoho.com
+            # username: ""
+            # password: ""
             port: 587
             properties:
               mail:
@@ -63,10 +128,29 @@ halyard:
                     enable: true
                 transport:
                   protocol: true
-      settings-local.js: |
-        window.spinnakerSettings.notifications.email = {
+      front50-local.yml:
+        sql:
           enabled: true
-        }
+          connectionPools:
+            default:
+              # https://github.com/spinnaker/kork/blob/master/kork-sql/src/main/kotlin/com/netflix/spinnaker/kork/sql/config/ConnectionPoolProperties.kt
+              default: true
+              jdbcUrl: ""
+              user: ""
+              password: ""
+              connectionTimeout: 15000
+              maxLifetime: 90000
+              maxPoolSize: 100
+          migration:
+            jdbcUrl: ""
+            user: ""
+            password: ""
+            connectionTimeout: 15000
+            maxLifetime: 90000
+            maxPoolSize: 100
+        spinnaker:
+          gcs:
+            enabled: false
       gate-local.yml:
         security:
           oauth2:
@@ -75,7 +159,7 @@ halyard:
               # clientSecret:
               # userAuthorizationUri:
               # accessTokenUri:
-              scope: openid email profile offline_access
+              scope: openid email profile
             resource: {}
               # userInfoUri:
             userInfoMapping:
@@ -83,17 +167,47 @@ halyard:
               firstName: given_name
               lastName: family_name
               username: preferred_username
-          tomcat:
-            protocolHeader: X-Forwarded-Proto
-            remoteIpHeader: X-Forwarded-For
-            internalProxies: .*
+        tomcat:
+          protocolHeader: X-Forwarded-Proto
+          remoteIpHeader: X-Forwarded-For
+          internalProxies: .*
+      igor-local.yml:
+        spinnaker:
+          pollInterval: 60
+          pollingSafeguard:
+            itemUpperThreshold: 40000
+      orca-local.yml:
+        services:
+          redis:
+            baseUrl: ""
+        pollers:
+          oldPipelineCleanup:
+            enabled: true
+            intervalMs: 3600000
+            thresholdDays: 14
+            minimumPipelineExecutions: 5
+        tasks:
+          daysOfExecutionHistory: 14
+        okHttpClient:
+          readTimeoutMs: 30000
+      settings-local.js: |
+        window.spinnakerSettings.notifications.email = {
+          enabled: true
+        }
+      spinnaker-local.yml:
+        logging:
+          level:
+            com:
+              netflix:
+                spinnaker: WARN
+              retrofit: WARN
   resources:
     requests:
-      cpu: 250m
-      memory: 500Mi
+      cpu: 750m
+      memory: 1.5Gi
     limits:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 750m
+      memory: 1.5Gi
 dockerRegistries:
 - name: dockerhub
   address: index.docker.io
@@ -102,32 +216,41 @@ dockerRegistries:
   - bitnami/postgresql
   - bitnami/redis
   - chartmuseum/chartmuseum
+  - grafana/grafana
+  - graylog/graylog
   - hugocortes/me
-  - hugocortes/blue-green
   - idobry/chartmuseumui
   - jboss/keycloak
   - keycloak/keycloak-gatekeeper
+  - library/elasticsearch
+  - library/influxdb
   - library/mysql
   - library/nginx
-  - linuxserver/calibre-web
+  - linuxserver/bookstack
+  - linuxserver/grocy
   - linuxserver/jackett
+  - linuxserver/ombi
   - linuxserver/radarr
+  - linuxserver/sabnzbd
   - linuxserver/sonarr
   - linuxserver/transmission
   - metallb/controller
   - metallb/speaker
   - plexinc/pms-docker
+  - miniflux/miniflux
   - pomerium/pomerium
-  - solidnerd/bookstack
+  - prom/prometheus
+  - rmountjoy/dashmachine
+  - tautulli/tautulli
+  - technosoft2000/calibre-web
+  - usefathom/fathom
 - name: quay
   address: quay.io
   repositories:
   - external_storage/nfs-client-provisioner
 spinnakerFeatureFlags:
-  - artifacts
   - pipeline-templates
   - managed-pipeline-templates-v2-ui
-  - artifacts-rewrite
 minio:
   enabled: false
 gcs:
@@ -135,10 +258,12 @@ gcs:
 redis:
   enabled: false
   external:
-    host: redis-master.storage.svc.cluster.local
+    host: ""
+    port: ""
+    password: ""
 kubeConfig:
   enabled: true
-  secretName: kubeconfig
+  secretName: ""
   secretKey: config
   contexts:
   - prometheus
