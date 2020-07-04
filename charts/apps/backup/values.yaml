@@ -1,0 +1,40 @@
+# Default values for backup.
+
+image:
+  repository: hugocortes/backup
+  pullPolicy: IfNotPresent
+  tag: latest
+  # pullSecrets: 
+  #   - myRegistryKeySecretName
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+persistence:
+  existingClaim: ""
+
+config:
+  schedule: 0 0 1 * *
+  istioEnabled: false
+  mongodb:
+    enabled: false
+    host: ""
+    user: ""
+    password: ""
+    databases: ""
+  mysql:
+    enabled: false
+    host: ""
+    user: ""
+    password: ""
+    databases: ""
+  postgresql:
+    enabled: false
+    host: ""
+    user: ""
+    password: ""
+    databases: ""

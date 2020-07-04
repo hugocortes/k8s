@@ -1,0 +1,75 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ include "backup.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "backup.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.config.schedule }}
+  concurrencyPolicy: Replace
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "backup.labels" . | nindent 8 }}
+    spec:
+      template:
+        spec:
+          containers:
+            - name: {{ .Chart.Name }}
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              env:
+                - name: IS_ISTIO
+                  value: {{ ternary "true" "false" .Values.config.istioEnabled | quote }}
+              {{- if .Values.config.mongodb.enabled }}
+                - name: MONGODB_ENABLED
+                  value: {{ ternary "true" "false" .Values.config.mongodb.enabled | quote }}
+                - name: MONGODB_HOST
+                  value: {{ .Values.config.mongodb.host }}
+                - name: MONGODB_USER
+                  value: {{ .Values.config.mongodb.user }}
+                - name: MONGODB_PASSWORD
+                  value: {{ .Values.config.mongodb.password }}
+                - name: MONGODB_DATABASES
+                  value: {{ .Values.config.mongodb.databases }}
+              {{- end }}
+              {{- if .Values.config.mysql.enabled }}
+                - name: MYSQL_ENABLED
+                  value: {{ ternary "true" "false" .Values.config.mysql.enabled | quote }}
+                - name: MYSQL_HOST
+                  value: {{ .Values.config.mysql.host }}
+                - name: MYSQL_USER
+                  value: {{ .Values.config.mysql.user }}
+                - name: MYSQL_PASSWORD
+                  value: {{ .Values.config.mysql.password }}
+                - name: MYSQL_DATABASES
+                  value: {{ .Values.config.mysql.databases }}
+              {{- end }}
+              {{- if .Values.config.postgresql.enabled }}
+                - name: PGENABLED
+                  value: {{ ternary "true" "false" .Values.config.postgresql.enabled | quote }}
+                - name: PGHOST
+                  value: {{ .Values.config.postgresql.host }}
+                - name: PGUSER
+                  value: {{ .Values.config.postgresql.user }}
+                - name: PGPASSWORD
+                  value: {{ .Values.config.postgresql.password }}
+                - name: PGDATABASES
+                  value: {{ .Values.config.postgresql.databases }}
+              {{- end }}
+              volumeMounts:
+                - name: backup
+                  mountPath: /mnt/backup
+          restartPolicy: OnFailure
+          terminationGracePeriodSeconds: 0
+        {{- with .Values.image.pullSecrets }}
+          imagePullSecrets:
+          {{- range . }}
+            - name: {{ . }}
+          {{- end }}
+        {{- end }} 
+          volumes:
+            - name: backup
+              persistentVolumeClaim:
+                claimName: {{ .Values.persistence.existingClaim }}
