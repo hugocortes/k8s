@@ -28,7 +28,7 @@ halyard:
         $HAL_COMMAND config artifact helm account add istio-1.4 \
           --repository https://storage.googleapis.com/istio-release/releases/1.4.4/charts
         $HAL_COMMAND config artifact helm account add istio-1.5 \
-          --repository https://storage.googleapis.com/istio-release/releases/1.5.1/charts
+          --repository https://storage.googleapis.com/istio-release/releases/1.5.6/charts
         $HAL_COMMAND config artifact helm account add jetstack \
           --repository https://charts.jetstack.io
         $HAL_COMMAND config artifact helm account add openfaas \
@@ -113,12 +113,12 @@ halyard:
       echo-local.yml:
         mail:
           enabled: true
-          # from: ""
+          from: ""
         spring:
           mail:
-            host: smtp.zoho.com
-            # username: ""
-            # password: ""
+            host: ""
+            username: ""
+            password: ""
             port: 587
             properties:
               mail:
@@ -244,6 +244,11 @@ dockerRegistries:
   - tautulli/tautulli
   - technosoft2000/calibre-web
   - usefathom/fathom
+- name: gcr
+  address: gcr.io
+  repositories:
+  - google-containers/metrics-server-amd64
+  - google-containers/metrics-server-arm
 - name: quay
   address: quay.io
   repositories:
