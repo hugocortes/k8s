@@ -1,0 +1,307 @@
+{
+  "schema": "v2",
+  "id": "deploy-cert-manager",
+  "metadata": {
+    "name": "Deploy Cert Manager",
+    "description": "Deploys cert manager and its dependencies.",
+    "owner": "contact@hugocortes.dev",
+    "scopes": ["global"]
+  },
+  "protect": true,
+
+  "variables": [
+    {
+      "type": "string",
+      "name": "kubernetesCluster",
+      "description": "kubernetes cluster to deploy to",
+      "defaultValue": "default"
+    },
+    {
+      "type": "string",
+      "name": "kubernetesNamespace",
+      "description": "kubernetes namespace to deploy to",
+      "defaultValue": "istio-system"
+    },
+    {
+      "type": "string",
+      "name": "helmRepository",
+      "description": "helm repository to pull chart from",
+      "defaultValue": "jetstack"
+    },
+    {
+      "type": "string",
+      "name": "helmChartName",
+      "description": "helm chart name to pull",
+      "defaultValue": "cert-manager"
+    },
+    {
+      "type": "string",
+      "name": "helmChartVersion",
+      "description": "helm chart version to pull",
+      "defaultValue": "v0.14.0-alpha.1"
+    },
+    {
+      "type": "string",
+      "name": "helmInstallationName",
+      "description": "helm installation name to be applied",
+      "defaultValue": "cert-manager"
+    },
+    {
+      "type": "string",
+      "name": "helmValuesPath",
+      "description": "helm chart values path stored in gcs",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "cloudflareKey",
+      "description": "cloudflare key stored in gcs",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "letsencrypt",
+      "description": "letsencrypt stored in gcs",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "letsencryptStaging",
+      "description": "letsencrypt staging stored ing cs",
+      "defaultValue": ""
+    }
+  ],
+  "pipeline": {
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "updateTs": "0",
+
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": {
+          "artifactAccount": "gcs",
+          "id": "default-artifact-${templateVariables.helmChartName}-values",
+          "name": "${templateVariables.helmValuesPath}",
+          "reference": "${templateVariables.helmValuesPath}",
+          "type": "gcs/object"
+        },
+        "displayName": "values",
+        "id": "artifact-${templateVariables.helmChartName}-values",
+        "matchArtifact": {
+          "artifactAccount": "gcs",
+          "id": "match-artifact-${templateVariables.helmChartName}-values",
+          "name": "${templateVariables.helmValuesPath}",
+          "reference": "${templateVariables.helmValuesPath}",
+          "type": "gcs/object"
+        },
+        "useDefaultArtifact": true,
+        "usePriorArtifact": false
+      },
+      {
+        "defaultArtifact": {
+          "artifactAccount": "gcs",
+          "id": "default-artifact-cloudflareKey",
+          "name": "${templateVariables.cloudflareKey}",
+          "reference": "${templateVariables.cloudflareKey}",
+          "type": "gcs/object"
+        },
+        "displayName": "values",
+        "id": "artifact-cloudflareKey",
+        "matchArtifact": {
+          "artifactAccount": "gcs",
+          "id": "match-artifact-cloudflareKey",
+          "name": "${templateVariables.cloudflareKey}",
+          "reference": "${templateVariables.cloudflareKey}",
+          "type": "gcs/object"
+        },
+        "useDefaultArtifact": true,
+        "usePriorArtifact": false
+      },
+      {
+        "defaultArtifact": {
+          "artifactAccount": "gcs",
+          "id": "default-artifact-letsencrypt",
+          "name": "${templateVariables.letsencrypt}",
+          "reference": "${templateVariables.letsencrypt}",
+          "type": "gcs/object"
+        },
+        "displayName": "values",
+        "id": "artifact-letsencrypt",
+        "matchArtifact": {
+          "artifactAccount": "gcs",
+          "id": "match-artifact-letsencrypt",
+          "name": "${templateVariables.letsencrypt}",
+          "reference": "${templateVariables.letsencrypt}",
+          "type": "gcs/object"
+        },
+        "useDefaultArtifact": true,
+        "usePriorArtifact": false
+      },
+      {
+        "defaultArtifact": {
+          "artifactAccount": "gcs",
+          "id": "default-artifact-letsencryptStaging",
+          "name": "${templateVariables.letsencryptStaging}",
+          "reference": "${templateVariables.letsencryptStaging}",
+          "type": "gcs/object"
+        },
+        "displayName": "values",
+        "id": "artifact-letsencryptStaging",
+        "matchArtifact": {
+          "artifactAccount": "gcs",
+          "id": "match-artifact-letsencryptStaging",
+          "name": "${templateVariables.letsencryptStaging}",
+          "type": "gcs/object"
+        },
+        "useDefaultArtifact": true,
+        "usePriorArtifact": false
+      }
+    ],
+    "notifications": [],
+    "parameterConfig": [],
+    "triggers": [],
+    "stages": [
+      {
+        "evaluateOverrideExpressions": true,
+        "expectedArtifacts": [
+          {
+            "defaultArtifact": {
+              "customKind": true,
+              "id": "default-artifact-${templateVariables.helmChartName}-rendered"
+            },
+            "displayName": "${templateVariables.helmInstallationName}",
+            "id": "artifact-${templateVariables.helmChartName}-rendered",
+            "matchArtifact": {
+              "artifactAccount": "embedded-artifact",
+              "id": "match-artifact-${templateVariables.helmChartName}-rendered",
+              "name": "${templateVariables.helmInstallationName}",
+              "type": "embedded/base64"
+            },
+            "useDefaultArtifact": false,
+            "usePriorArtifact": false
+          }
+        ],
+        "inputArtifacts": [
+          {
+            "account": "${templateVariables.helmRepository}",
+            "artifact": {
+              "artifactAccount": "${templateVariables.helmRepository}",
+              "id": "artifact-${templateVariables.helmChartName}-chart",
+              "name": "${templateVariables.helmChartName}",
+              "type": "helm/chart",
+              "version": "${templateVariables.helmChartVersion}"
+            }
+          },
+          {
+            "account": "gcs",
+            "id": "artifact-${templateVariables.helmChartName}-values"
+          }
+        ],
+        "name": "render helm chart",
+        "namespace": "${templateVariables.kubernetesNamespace}",
+        "outputName": "${templateVariables.helmInstallationName}",
+        "overrides": {},
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "templateRenderer": "HELM3",
+        "type": "bakeManifest"
+      },
+      {
+        "account": "${templateVariables.kubernetesCluster}",
+        "cloudProvider": "kubernetes",
+        "manifestArtifactId": "artifact-${templateVariables.helmChartName}-rendered",
+        "moniker": {
+          "app": "${execution.application}"
+        },
+        "name": "deploy helm chart",
+        "namespaceOverride": "",
+        "refId": "2",
+        "requisiteStageRefIds": [
+          "1"
+        ],
+        "skipExpressionEvaluation": false,
+        "source": "artifact",
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "enableTraffic": false
+          }
+        },
+        "type": "deployManifest"
+      },
+      {
+        "account": "${templateVariables.kubernetesCluster}",
+        "cloudProvider": "kubernetes",
+        "manifestArtifactId": "artifact-cloudflareKey",
+        "manifests": [],
+        "moniker": {
+          "app": "${execution.application}"
+        },
+        "name": "deploy cloudflare api key",
+        "namespaceOverride": "${templateVariables.kubernetesNamespace}",
+        "refId": "3",
+        "requisiteStageRefIds": [],
+        "skipExpressionEvaluation": false,
+        "source": "artifact",
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "enableTraffic": false
+          }
+        },
+        "type": "deployManifest"
+      },
+      {
+        "account": "${templateVariables.kubernetesCluster}",
+        "cloudProvider": "kubernetes",
+        "manifestArtifactId": "artifact-letsencrypt",
+        "manifests": [],
+        "moniker": {
+          "app": "${execution.application}"
+        },
+        "name": "deploy letsencrypt",
+        "namespaceOverride": "${templateVariables.kubernetesNamespace}",
+        "refId": "4",
+        "requisiteStageRefIds": [
+          "2",
+          "3"
+        ],
+        "skipExpressionEvaluation": false,
+        "source": "artifact",
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "enableTraffic": false
+          }
+        },
+        "type": "deployManifest"
+      },
+      {
+        "account": "${templateVariables.kubernetesCluster}",
+        "cloudProvider": "kubernetes",
+        "manifestArtifactId": "artifact-letsencryptStaging",
+        "manifests": [],
+        "moniker": {
+          "app": "${execution.application}"
+        },
+        "name": "deploy letsencrypt staging",
+        "namespaceOverride": "${templateVariables.kubernetesNamespace}",
+        "refId": "5",
+        "requisiteStageRefIds": [
+          "2",
+          "3"
+        ],
+        "skipExpressionEvaluation": false,
+        "source": "artifact",
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "enableTraffic": false
+          }
+        },
+        "type": "deployManifest"
+      }
+    ]
+  }
+}
