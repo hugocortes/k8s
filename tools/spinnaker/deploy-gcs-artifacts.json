@@ -1,0 +1,68 @@
+{
+  "schema": "v2",
+  "id": "deploy-gcs-artifacts",
+  "metadata": {
+    "name": "Deploy GCS Artifacts",
+    "description": "Deploys gcs artifacts.",
+    "owner": "contact@hugocortes.dev",
+    "scopes": ["global"]
+  },
+  "protect": true,
+
+  "variables": [
+    {
+      "type": "string",
+      "name": "kubernetesCluster",
+      "description": "kubernetes cluster to deploy to",
+      "defaultValue": "default"
+    },
+    {
+      "type": "string",
+      "name": "kubernetesNamespace",
+      "description": "kubernetes namespace to deploy to",
+      "defaultValue": "istio-system"
+    },
+    {
+      "type": "string",
+      "name": "istioInjection",
+      "description": "istio injection enable/disable on namespace",
+      "defaultValue": "enabled"
+    },
+    {
+      "type": "list",
+      "name": "gcsArtifacts",
+      "description": "gcs artifacts to deploy",
+      "defaultValue": []
+    }
+  ],
+  "pipeline": {
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "updateTs": "0",
+
+    "expectedArtifacts": [],
+    "notifications": [],
+    "parameterConfig": [],
+    "triggers": [],
+    "stages": [
+      {
+        "application": "terraform",
+        "failPipeline": true,
+        "name": "deploy artifacts",
+        "pipeline": "9b5264f9-030d-4cd3-ae2e-0db08a65f5c2",
+        "pipelineParameters": {
+          "application": "${execution.application}",
+          "artifacts": "${templateVariables.gcsArtifacts}",
+          "cluster": "${templateVariables.kubernetesCluster}",
+          "namespace": "${templateVariables.kubernetesNamespace}",
+          "istioInjection": "${templateVariables.istioInjection}"
+        },
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "type": "pipeline",
+        "waitForCompletion": true
+      }
+    ]
+  }
+}
