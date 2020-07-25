@@ -60,57 +60,64 @@ halyard:
         echo "configuring component sizing"
         # requires replica=1
         $HAL_COMMAND config deploy component-sizing echo edit \
-          --container-limits-cpu 250m \
-          --container-requests-cpu 250m \
-          --container-limits-memory 1Gi \
-          --container-requests-memory 1Gi
+          --container-limits-cpu 100m \
+          --container-requests-cpu 100m \
+          --container-limits-memory 750Mi \
+          --container-requests-memory 750Mi
         $HAL_COMMAND config deploy component-sizing igor edit \
-          --container-limits-cpu 250m \
-          --container-requests-cpu 250m \
-          --container-limits-memory 1Gi \
-          --container-requests-memory 1Gi
+          --container-limits-cpu 100m \
+          --container-requests-cpu 100m \
+          --container-limits-memory 750Mi \
+          --container-requests-memory 750Mi
 
         # requires more resources
         $HAL_COMMAND config deploy component-sizing clouddriver edit \
-          --container-limits-cpu 500m \
-          --container-requests-cpu 500m \
-          --container-limits-memory 1.5Gi \
-          --container-requests-memory 1.5Gi \
+          --container-limits-cpu 1.25 \
+          --container-requests-cpu 1.25 \
+          --container-limits-memory 1.75Gi \
+          --container-requests-memory 1.75Gi \
           --replicas 1
         $HAL_COMMAND config deploy component-sizing orca edit \
           --container-limits-cpu 500m \
           --container-requests-cpu 500m \
-          --container-limits-memory 1.5Gi \
-          --container-requests-memory 1.5Gi \
+          --container-limits-memory 1Gi \
+          --container-requests-memory 1Gi \
           --replicas 1
 
         $HAL_COMMAND config deploy component-sizing deck edit \
-          --container-limits-cpu 250m \
-          --container-requests-cpu 250m \
-          --container-limits-memory 1Gi \
-          --container-requests-memory 1Gi
+          --container-limits-cpu 50m \
+          --container-requests-cpu 50m \
+          --container-limits-memory 100Mi \
+          --container-requests-memory 100Mi
         $HAL_COMMAND config deploy component-sizing front50 edit \
-          --container-limits-cpu 250m \
-          --container-requests-cpu 250m \
-          --container-limits-memory 1Gi \
-          --container-requests-memory 1Gi
+          --container-limits-cpu 150m \
+          --container-requests-cpu 150m \
+          --container-limits-memory 800Mi \
+          --container-requests-memory 800Mi
         $HAL_COMMAND config deploy component-sizing gate edit \
-          --container-limits-cpu 250m \
-          --container-requests-cpu 250m \
-          --container-limits-memory 1Gi \
-          --container-requests-memory 1Gi
+          --container-limits-cpu 150m \
+          --container-requests-cpu 150m \
+          --container-limits-memory 600Mi \
+          --container-requests-memory 600Mi
         $HAL_COMMAND config deploy component-sizing rosco edit \
-          --container-limits-cpu 250m \
-          --container-requests-cpu 250m \
-          --container-limits-memory 1Gi \
-          --container-requests-memory 1Gi
+          --container-limits-cpu 100m \
+          --container-requests-cpu 100m \
+          --container-limits-memory 500Mi \
+          --container-requests-memory 500Mi
   additionalProfileConfigMaps:
     data:
       clouddriver-local.yml:
+        env:
+          JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
         services:
           redis:
             baseUrl: ""
+      deck-local.yml:
+        env:
+          JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
       echo-local.yml:
+        env:
+          JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
         mail:
           enabled: true
           from: ""
@@ -129,6 +136,8 @@ halyard:
                 transport:
                   protocol: true
       front50-local.yml:
+        env:
+          JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
         sql:
           enabled: true
           connectionPools:
@@ -152,6 +161,8 @@ halyard:
           gcs:
             enabled: false
       gate-local.yml:
+        env:
+          JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
         security:
           oauth2:
             client:
@@ -172,11 +183,15 @@ halyard:
           remoteIpHeader: X-Forwarded-For
           internalProxies: .*
       igor-local.yml:
+        env:
+          JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
         spinnaker:
           pollInterval: 60
           pollingSafeguard:
             itemUpperThreshold: 40000
       orca-local.yml:
+        env:
+          JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
         services:
           redis:
             baseUrl: ""
@@ -190,6 +205,9 @@ halyard:
           daysOfExecutionHistory: 14
         okHttpClient:
           readTimeoutMs: 30000
+      rosco-local.yml:
+        env:
+          JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
       settings-local.js: |
         window.spinnakerSettings.notifications.email = {
           enabled: true
@@ -221,6 +239,7 @@ dockerRegistries:
   - hugocortes/me
   - idobry/chartmuseumui
   - jboss/keycloak
+  - kennethreitz/httpbin
   - keycloak/keycloak-gatekeeper
   - library/elasticsearch
   - library/influxdb
