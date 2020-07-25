@@ -66,6 +66,12 @@
     },
     {
       "type": "string",
+      "name": "helmImageValuesPath",
+      "description": "helm chart image values path stored in gcs",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
       "name": "helmValuesPath",
       "description": "helm chart values path stored in gcs",
       "defaultValue": ""
@@ -108,6 +114,25 @@
         },
         "useDefaultArtifact": true,
         "usePriorArtifact": false
+      },
+      {
+        "defaultArtifact": {
+          "artifactAccount": "gcs",
+          "id": "default-artifact-${templateVariables.helmChartName}-image-values",
+          "name": "${templateVariables.helmImageValuesPath}",
+          "reference": "${templateVariables.helmImageValuesPath}",
+          "type": "gcs/object"
+        },
+        "displayName": "image-values",
+        "id": "artifact-${templateVariables.helmChartName}-image-values",
+        "matchArtifact": {
+          "artifactAccount": "gcs",
+          "id": "match-artifact-${templateVariables.helmChartName}-image-values",
+          "name": "${templateVariables.helmImageValuesPath}",
+          "type": "gcs/object"
+        },
+        "useDefaultArtifact": true,
+        "usePriorArtifact": false
       }
     ],
     "notifications": [],
@@ -137,11 +162,27 @@
         },
         "enabled": "${templateVariables.enablePubSubTrigger}",
         "expectedArtifactIds": [
-          "artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}",
-          "artifact-${templateVariables.helmChartName}-values"
+          "artifact-${templateVariables.helmChartName}-values",
+          "artifact-${templateVariables.helmChartName}-image-values"
         ],
         "payloadConstraints": {
           "name": "${templateVariables.helmValuesPath.replaceAll(\"(^gs:\\/\\/[^\\/]+\\/)\", \"\")}"
+        },
+        "pubsubSystem": "google",
+        "subscriptionName": "${templateVariables.pubSubName}",
+        "type": "pubsub"
+      },
+      {
+        "attributeConstraints": {
+          "eventType": "OBJECT_FINALIZE"
+        },
+        "enabled": "${templateVariables.enablePubSubTrigger}",
+        "expectedArtifactIds": [
+          "artifact-${templateVariables.helmChartName}-values",
+          "artifact-${templateVariables.helmChartName}-image-values"
+        ],
+        "payloadConstraints": {
+          "name": "${templateVariables.helmImageValuesPath.replaceAll(\"(^gs:\\/\\/[^\\/]+\\/)\", \"\")}"
         },
         "pubsubSystem": "google",
         "subscriptionName": "${templateVariables.pubSubName}",
@@ -183,6 +224,10 @@
           {
             "account": "gcs",
             "id": "artifact-${templateVariables.helmChartName}-values"
+          },
+          {
+            "account": "gcs",
+            "id": "artifact-${templateVariables.helmChartName}-image-values"
           }
         ],
         "name": "render helm chart",

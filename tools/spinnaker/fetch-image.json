@@ -90,17 +90,14 @@
     ],
     "stages": [
       {
-        "failOnFailedExpressions": true,
-        "name": "noop",
+        "application": "registry",
+        "failPipeline": true,
+        "name": "if isGlobalDockerTriggerEnabled",
+        "pipeline": "79c40cec-77ac-411c-9b2e-d8fcaafcaf11",
         "refId": "1",
         "requisiteStageRefIds": [],
-        "type": "evaluateVariables",
-        "variables": [
-          {
-            "key": "noop",
-            "value": "\"${''}\""
-          }
-        ]
+        "type": "pipeline",
+        "waitForCompletion": true
       }
     ]
   }
