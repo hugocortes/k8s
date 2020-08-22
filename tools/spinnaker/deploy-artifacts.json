@@ -2,8 +2,8 @@
   "schema": "v2",
   "id": "deploy-gcs-artifacts",
   "metadata": {
-    "name": "Deploy GCS Artifacts",
-    "description": "Deploys gcs artifacts.",
+    "name": "Deploy Artifacts",
+    "description": "Deploys artifacts.",
     "owner": "contact@hugocortes.dev",
     "scopes": ["global"]
   },
