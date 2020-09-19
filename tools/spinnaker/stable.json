@@ -1,0 +1,323 @@
+{
+  "schema": "v2",
+  "id": "deploy-stable",
+  "metadata": {
+    "name": "Deploy Stable",
+    "description": "Deploys stable application.",
+    "owner": "contact@hugocortes.dev",
+    "scopes": ["global"]
+  },
+  "protect": true,
+
+  "variables": [
+    {
+      "type": "string",
+      "name": "kubernetesCluster",
+      "description": "kubernetes cluster to deploy to",
+      "defaultValue": "default"
+    },
+    {
+      "type": "string",
+      "name": "kubernetesNamespace",
+      "description": "kubernetes namespace to deploy to",
+      "defaultValue": "default"
+    },
+    {
+      "type": "string",
+      "name": "helmRepository",
+      "description": "helm repository to pull chart from",
+      "defaultValue": "stable"
+    },
+    {
+      "type": "string",
+      "name": "helmChartName",
+      "description": "helm chart name to pull",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "helmChartVersion",
+      "description": "helm chart version to pull",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "helmInstallationName",
+      "description": "helm installation name to be applied",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "helmImageKey",
+      "description": "helm chart yaml key location to override image tag",
+      "defaultValue": "image.tag"
+    },
+    {
+      "type": "string",
+      "name": "helmStableValuesPath",
+      "description": "helm chart stable values path stored in gcs",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "registryApplication",
+      "description": "registry application name",
+      "defaultValue": "registry"
+    },
+    {
+      "type": "string",
+      "name": "registryPipelineId",
+      "description": "registry pipeline id",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "registryName",
+      "description": "registry name configured in spinnaker",
+      "defaultValue": "dockerhub"
+    },
+    {
+      "type": "string",
+      "name": "registryUrl",
+      "description": "registry base url",
+      "defaultValue": "index.docker.io"
+    },
+    {
+      "type": "string",
+      "name": "registryRepository",
+      "description": "registry repository where image is hosted",
+      "defaultValue": "library"
+    },
+    {
+      "type": "string",
+      "name": "registryImage",
+      "description": "registry image name",
+      "defaultValue": "nginx"
+    },
+    {
+      "type": "string",
+      "name": "istioStable",
+      "description": "istio stable config",
+      "defaultValue": ""
+    }
+  ],
+  "pipeline": {
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "updateTs": "0",
+
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": {
+          "customKind": true,
+          "id": "default-artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}"
+        },
+        "displayName": "image",
+        "id": "artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}",
+        "matchArtifact": {
+          "artifactAccount": "docker-registry",
+          "id": "match-artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}",
+          "name": "${templateVariables.registryUrl}/${templateVariables.registryRepository}/${templateVariables.registryImage}",
+          "type": "docker/image"
+        },
+        "useDefaultArtifact": false,
+        "usePriorArtifact": true
+      }
+    ],
+    "notifications": [],
+    "parameterConfig": [
+      {
+        "default": "false",
+        "description": "whether to deploy namespace",
+        "hasOptions": true,
+        "label": "namespace",
+        "name": "namespace",
+        "options": [
+          {
+            "value": "true"
+          },
+          {
+            "value": "false"
+          }
+        ],
+        "pinned": false,
+        "required": false
+      },
+      {
+        "default": "",
+        "description": "docker image to deploy if executed through pipeline",
+        "hasOptions": false,
+        "label": "dockerTag",
+        "name": "dockerTag",
+        "options": [],
+        "pinned": false,
+        "required": false
+      }
+
+    ],
+    "triggers": [
+      {
+        "account": "${templateVariables.registryName}",
+        "description": "(Docker Registry) ${templateVariables.registryName}: ${templateVariables.registryRepository}/${templateVariables.registryImage}",
+        "enabled": false,
+        "expectedArtifactIds": [
+          "artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}"
+        ],
+        "organization": "${templateVariables.registryRepository}",
+        "registry": "${templateVariables.registryUrl}",
+        "repository": "${templateVariables.registryRepository}/${templateVariables.registryImage}",
+        "tag": "",
+        "type": "docker"
+      }
+    ],
+    "stages": [
+      {
+        "application": "terraform",
+        "failPipeline": true,
+        "name": "create namespace",
+        "pipeline": "00e5db1f-176b-4d35-b211-1376a0016638",
+        "pipelineParameters": {
+          "application": "${execution.application}",
+          "cluster": "${templateVariables.kubernetesCluster}",
+          "namespace": "${templateVariables.kubernetesNamespace}"
+        },
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "stageEnabled": {
+          "expression": "parameters.namespace == 'true'",
+          "type": "expression"
+        },
+        "type": "pipeline",
+        "waitForCompletion": true
+      },
+      {
+        "failOnFailedExpressions": true,
+        "name": "env",
+        "refId": "2",
+        "requisiteStageRefIds": [],
+        "type": "evaluateVariables",
+        "variables": [
+          {
+            "key": "dockerTag",
+            "value": "${trigger.type == \"docker\" || trigger.type == \"manual\" ? #triggerResolvedArtifactByType('docker/image').version : parameters.dockerTag}"
+          }
+        ]
+      },
+      {
+        "evaluateOverrideExpressions": true,
+        "expectedArtifacts": [
+          {
+            "defaultArtifact": {
+              "customKind": true,
+              "id": "default-artifact-stable-${templateVariables.helmChartName}-rendered"
+            },
+            "displayName": "stable-${templateVariables.helmInstallationName}",
+            "id": "artifact-stable-${templateVariables.helmChartName}-rendered",
+            "matchArtifact": {
+              "artifactAccount": "embedded-artifact",
+              "id": "match-artifact-stable-${templateVariables.helmChartName}-rendered",
+              "name": "stable-${templateVariables.helmInstallationName}",
+              "type": "embedded/base64"
+            },
+            "useDefaultArtifact": false,
+            "usePriorArtifact": false
+          }
+        ],
+        "inputArtifacts": [
+          {
+            "account": "${templateVariables.helmRepository}",
+            "artifact": {
+              "artifactAccount": "${templateVariables.helmRepository}",
+              "id": "artifact-${templateVariables.helmChartName}-chart",
+              "name": "${templateVariables.helmChartName}",
+              "type": "helm/chart",
+              "version": "${templateVariables.helmChartVersion}"
+            }
+          },
+          {
+            "account": "gcs",
+            "artifact": {
+              "artifactAccount": "gcs",
+              "id": "artifact-stable-${templateVariables.helmChartName}-values",
+              "name": "${templateVariables.helmStableValuesPath}",
+              "reference": "${templateVariables.helmStableValuesPath}",
+              "type": "gcs/object"
+            }
+          }
+        ],
+        "name": "bake stable manifest",
+        "namespace": "${templateVariables.kubernetesNamespace}",
+        "outputName": "stable-${templateVariables.helmInstallationName}",
+        "overrides": {
+          "image.tag": "${#stage('env').outputs.dockerTag}",
+          "version": "stable"
+        },
+        "refId": "3",
+        "requisiteStageRefIds": [
+          "2"
+        ],
+        "templateRenderer": "HELM3",
+        "type": "bakeManifest"
+      },
+      {
+        "account": "${templateVariables.kubernetesCluster}",
+        "cloudProvider": "kubernetes",
+        "manifestArtifactId": "artifact-stable-${templateVariables.helmChartName}-rendered",
+        "moniker": {
+          "app": "${execution.application}"
+        },
+        "name": "deploy stable",
+        "namespaceOverride": "${templateVariables.kubernetesNamespace}",
+        "refId": "4",
+        "requiredArtifactIds": [],
+        "requiredArtifacts": [],
+        "requisiteStageRefIds": [
+          "1",
+          "3"
+        ],
+        "skipExpressionEvaluation": true,
+        "source": "artifact",
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "enableTraffic": false,
+            "services": []
+          }
+        },
+        "type": "deployManifest"
+      },
+      {
+        "account": "${templateVariables.kubernetesCluster}",
+        "cloudProvider": "kubernetes",
+        "manifestArtifact": {
+          "artifactAccount": "gcs",
+          "id": "artifact-istio-stable-values",
+          "name": "${templateVariables.istioStable}",
+          "reference": "${templateVariables.istioStable}",
+          "type": "gcs/object"
+        },
+        "manifestArtifactId": null,
+        "moniker": {
+          "app": "${execution.application}"
+        },
+        "name": "deploy stable vs",
+        "namespaceOverride": "${templateVariables.kubernetesNamespace}",
+        "refId": "5",
+        "requisiteStageRefIds": [
+          "4"
+        ],
+        "skipExpressionEvaluation": false,
+        "source": "artifact",
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "enableTraffic": false,
+            "services": []
+          }
+        },
+        "type": "deployManifest"
+      }
+    ]
+  }
+}

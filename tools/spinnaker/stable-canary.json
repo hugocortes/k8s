@@ -1,0 +1,670 @@
+{
+  "schema": "v2",
+  "id": "deploy-stable-canary",
+  "metadata": {
+    "name": "Deploy Stable Canary",
+    "description": "Deploys a canary application.",
+    "owner": "contact@hugocortes.dev",
+    "scopes": ["global"]
+  },
+  "protect": true,
+
+  "variables": [
+    {
+      "type": "boolean",
+      "name": "enableDockerTrigger",
+      "description": "whether docker trigger should be enabled",
+      "defaultValue": false
+    },
+
+    {
+      "type": "string",
+      "name": "kubernetesCluster",
+      "description": "kubernetes cluster to deploy to",
+      "defaultValue": "default"
+    },
+    {
+      "type": "string",
+      "name": "kubernetesNamespace",
+      "description": "kubernetes namespace to deploy to",
+      "defaultValue": "default"
+    },
+    {
+      "type": "string",
+      "name": "helmRepository",
+      "description": "helm repository to pull chart from",
+      "defaultValue": "stable"
+    },
+    {
+      "type": "string",
+      "name": "helmChartName",
+      "description": "helm chart name to pull",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "helmChartVersion",
+      "description": "helm chart version to pull",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "helmInstallationName",
+      "description": "helm installation name to be applied",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "helmImageKey",
+      "description": "helm chart yaml key location to override image tag",
+      "defaultValue": "image.tag"
+    },
+    {
+      "type": "string",
+      "name": "helmBaselineValuesPath",
+      "description": "helm chart baseline values path stored in gcs",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "helmCanaryValuesPath",
+      "description": "helm canary baseline values path stored in gcs",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "registryApplication",
+      "description": "registry application name",
+      "defaultValue": "registry"
+    },
+    {
+      "type": "string",
+      "name": "registryPipelineId",
+      "description": "registry pipeline id",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "registryName",
+      "description": "registry name configured in spinnaker",
+      "defaultValue": "dockerhub"
+    },
+    {
+      "type": "string",
+      "name": "registryUrl",
+      "description": "registry base url",
+      "defaultValue": "index.docker.io"
+    },
+    {
+      "type": "string",
+      "name": "registryRepository",
+      "description": "registry repository where image is hosted",
+      "defaultValue": "library"
+    },
+    {
+      "type": "string",
+      "name": "registryImage",
+      "description": "registry image name",
+      "defaultValue": "nginx"
+    },
+    {
+      "type": "string",
+      "name": "istioStable",
+      "description": "istio stable config",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "istioCanary",
+      "description": "istio canary config",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "canaryConfigId",
+      "description": "canary config id",
+      "defaultValue": ""
+    },
+    {
+      "type": "string",
+      "name": "stablePipelineId",
+      "description": "stable pipeline id",
+      "defaultValue": ""
+    }
+  ],
+
+  "pipeline": {
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "updateTs": "0",
+
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": {
+          "customKind": true,
+          "id": "default-artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}"
+        },
+        "displayName": "image",
+        "id": "artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}",
+        "matchArtifact": {
+          "artifactAccount": "docker-registry",
+          "id": "match-artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}",
+          "name": "${templateVariables.registryUrl}/${templateVariables.registryRepository}/${templateVariables.registryImage}",
+          "type": "docker/image"
+        },
+        "useDefaultArtifact": false,
+        "usePriorArtifact": true
+      }
+    ],
+    "notifications": [
+      {
+        "address": "contact@hugocortes.dev",
+        "level": "pipeline",
+        "message": {
+          "pipeline.complete": {
+            "text": "released new stable version!\n\u003cbr\u003e\u003cbr\u003e\ntriggering application:\u003cb\u003e${execution.application}\u003c/b\u003e\n\u003cbr\u003e\ntriggering pipeline: \u003cb\u003e${execution.name}\u003c/b\u003e\n\u003cbr\u003e\ntag: \u003cb\u003e${#stage(\"env\").outputs.dockerTag}\u003c/b\u003e\n\u003cbr\u003e"
+          },
+          "pipeline.failed": {
+            "text": "failed to release new stable version!\n\u003cbr\u003e\u003cbr\u003e\ntriggering application:\u003cb\u003e${execution.application}\u003c/b\u003e\n\u003cbr\u003e\ntriggering pipeline: \u003cb\u003e${execution.name}\u003c/b\u003e\n\u003cbr\u003e\ntag: \u003cb\u003e${#stage(\"env\").outputs.dockerTag}\u003c/b\u003e\n\u003cbr\u003e"
+          }
+        },
+        "type": "email",
+        "when": [
+          "pipeline.failed",
+          "pipeline.complete"
+        ]
+      }
+    ],
+    "parameterConfig": [],
+    "triggers": [
+      {
+        "account": "${templateVariables.registryName}",
+        "description": "(Docker Registry) ${templateVariables.registryName}: ${templateVariables.registryRepository}/${templateVariables.registryImage}",
+        "enabled": false,
+        "expectedArtifactIds": [
+          "artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}"
+        ],
+        "organization": "${templateVariables.registryRepository}",
+        "registry": "${templateVariables.registryUrl}",
+        "repository": "${templateVariables.registryRepository}/${templateVariables.registryImage}",
+        "tag": "",
+        "type": "docker"
+      },
+      {
+        "application": "${templateVariables.registryApplication}",
+        "enabled": true,
+        "expectedArtifactIds": [
+          "artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}"
+        ],
+        "pipeline": "${templateVariables.registryPipelineId}",
+        "status": [
+          "successful"
+        ],
+        "type": "pipeline"
+      }
+    ],
+    "stages": [
+      {
+        "failOnFailedExpressions": true,
+        "name": "env",
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "type": "evaluateVariables",
+        "variables": [
+          {
+            "key": "isDockerTrigger",
+            "value": "${trigger.parentExecution != null ? trigger.parentExecution.trigger.type == \"docker\" : false}"
+          },
+          {
+            "key": "dockerTag",
+            "value": "${#triggerResolvedArtifactByType('docker/image').version}"
+          }
+        ]
+      },
+      {
+        "name": "if docker deploy is enabled",
+        "notifications": [
+          {
+            "address": "contact@hugocortes.dev",
+            "level": "stage",
+            "message": {
+              "stage.failed": {
+                "text": "retrieved new docker image but not deploying!\n\u003cbr\u003e\nimage: ${trigger.parentExecution.trigger.artifacts.?[type==\"docker/image\"][0].name}\n\u003cbr\u003e\ntag: \u003cb\u003e${trigger.parentExecution.trigger.artifacts.?[type==\"docker/image\"][0].version}\u003c/b\u003e\n\u003cbr\u003e"
+              }
+            },
+            "type": "email",
+            "when": [
+              "stage.failed"
+            ]
+          }
+        ],
+        "preconditions": [
+          {
+            "context": {
+              "expression": "!(#stage( #root.execution, 'env').outputs.isDockerTrigger \u0026\u0026 trigger.type==\"pipeline\" \u0026\u0026 !${templateVariables.enableDockerTrigger})"
+            },
+            "failPipeline": true,
+            "type": "expression"
+          }
+        ],
+        "refId": "2",
+        "requisiteStageRefIds": [
+          "1"
+        ],
+        "sendNotifications": true,
+        "type": "checkPreconditions"
+      },
+      {
+        "evaluateOverrideExpressions": true,
+        "expectedArtifacts": [
+          {
+            "defaultArtifact": {
+              "customKind": true,
+              "id": "default-artifact-baseline-${templateVariables.helmChartName}-rendered"
+            },
+            "displayName": "baseline-${templateVariables.helmInstallationName}",
+            "id": "artifact-baseline-${templateVariables.helmChartName}-rendered",
+            "matchArtifact": {
+              "artifactAccount": "embedded-artifact",
+              "id": "match-artifact-baseline-${templateVariables.helmChartName}-rendered",
+              "name": "baseline-${templateVariables.helmInstallationName}",
+              "type": "embedded/base64"
+            },
+            "useDefaultArtifact": false,
+            "usePriorArtifact": false
+          }
+        ],
+        "inputArtifacts": [
+          {
+            "account": "${templateVariables.helmRepository}",
+            "artifact": {
+              "artifactAccount": "${templateVariables.helmRepository}",
+              "id": "artifact-${templateVariables.helmChartName}-chart",
+              "name": "${templateVariables.helmChartName}",
+              "type": "helm/chart",
+              "version": "${templateVariables.helmChartVersion}"
+            }
+          },
+          {
+            "account": "gcs",
+            "artifact": {
+              "artifactAccount": "gcs",
+              "id": "artifact-baseline-${templateVariables.helmChartName}-values",
+              "name": "${templateVariables.helmBaselineValuesPath}",
+              "reference": "${templateVariables.helmBaselineValuesPath}",
+              "type": "gcs/object"
+            }
+          }
+        ],
+        "name": "bake baseline",
+        "namespace": "${templateVariables.kubernetesNamespace}",
+        "outputName": "baseline-${templateVariables.helmInstallationName}",
+        "overrides": {
+          "image.tag": "${#stage('env').outputs.dockerTag}",
+          "version": "baseline"
+        },
+        "refId": "3",
+        "requisiteStageRefIds": [
+          "2"
+        ],
+        "templateRenderer": "HELM3",
+        "type": "bakeManifest"
+      },
+      {
+        "account": "${templateVariables.kubernetesCluster}",
+        "cloudProvider": "kubernetes",
+        "manifestArtifactId": "artifact-baseline-${templateVariables.helmChartName}-rendered",
+        "moniker": {
+          "app": "${execution.application}"
+        },
+        "name": "deploy baseline",
+        "namespaceOverride": "${templateVariables.kubernetesNamespace}",
+        "refId": "4",
+        "requiredArtifactIds": [],
+        "requiredArtifacts": [],
+        "requisiteStageRefIds": [
+          "3"
+        ],
+        "skipExpressionEvaluation": true,
+        "source": "artifact",
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "enableTraffic": false,
+            "services": []
+          }
+        },
+        "type": "deployManifest"
+      },
+      {
+        "evaluateOverrideExpressions": true,
+        "expectedArtifacts": [
+          {
+            "defaultArtifact": {
+              "customKind": true,
+              "id": "default-artifact-canary-${templateVariables.helmChartName}-rendered"
+            },
+            "displayName": "canary-${templateVariables.helmInstallationName}",
+            "id": "artifact-canary-${templateVariables.helmChartName}-rendered",
+            "matchArtifact": {
+              "artifactAccount": "embedded-artifact",
+              "customKind": false,
+              "id": "match-artifact-canary-${templateVariables.helmChartName}-rendered",
+              "name": "canary-${templateVariables.helmInstallationName}",
+              "type": "embedded/base64"
+            },
+            "useDefaultArtifact": false,
+            "usePriorArtifact": false
+          }
+        ],
+        "inputArtifacts": [
+          {
+            "account": "${templateVariables.helmRepository}",
+            "artifact": {
+              "artifactAccount": "${templateVariables.helmRepository}",
+              "id": "artifact-${templateVariables.helmChartName}-chart",
+              "name": "${templateVariables.helmChartName}",
+              "type": "helm/chart",
+              "version": "${templateVariables.helmChartVersion}"
+            }
+          },
+          {
+            "account": "gcs",
+            "artifact": {
+              "artifactAccount": "gcs",
+              "id": "artifact-canary-${templateVariables.helmChartName}-values",
+              "name": "${templateVariables.helmCanaryValuesPath}",
+              "reference": "${templateVariables.helmCanaryValuesPath}",
+              "type": "gcs/object"
+            }
+          }
+        ],
+        "name": "bake canary",
+        "namespace": "${templateVariables.kubernetesNamespace}",
+        "outputName": "canary-${templateVariables.helmInstallationName}",
+        "overrides": {
+          "image.tag": "${#stage('env').outputs.dockerTag}",
+          "version": "canary"
+        },
+        "refId": "5",
+        "requisiteStageRefIds": [
+          "2"
+        ],
+        "templateRenderer": "HELM3",
+        "type": "bakeManifest"
+      },
+      {
+        "account": "${templateVariables.kubernetesCluster}",
+        "cloudProvider": "kubernetes",
+        "manifestArtifactId": "artifact-canary-${templateVariables.helmChartName}-rendered",
+        "moniker": {
+          "app": "${execution.application}"
+        },
+        "name": "deploy canary",
+        "namespaceOverride": "${templateVariables.kubernetesNamespace}",
+        "refId": "6",
+        "requiredArtifactIds": [],
+        "requiredArtifacts": [],
+        "requisiteStageRefIds": [
+          "5"
+        ],
+        "skipExpressionEvaluation": true,
+        "source": "artifact",
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "enableTraffic": false,
+            "services": []
+          }
+        },
+        "type": "deployManifest"
+      },
+      {
+        "account": "${templateVariables.kubernetesCluster}",
+        "cloudProvider": "kubernetes",
+        "manifestArtifact": {
+          "artifactAccount": "gcs",
+          "id": "artifact-istio-canary-values",
+          "name": "${templateVariables.istioCanary}",
+          "reference": "${templateVariables.istioCanary}",
+          "type": "gcs/object"
+        },
+        "manifestArtifactId": null,
+        "moniker": {
+          "app": "${execution.application}"
+        },
+        "name": "deploy canary vs",
+        "namespaceOverride": "${templateVariables.kubernetesNamespace}",
+        "refId": "7",
+        "requisiteStageRefIds": [
+          "6",
+          "4"
+        ],
+        "skipExpressionEvaluation": false,
+        "source": "artifact",
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "enableTraffic": false,
+            "services": []
+          }
+        },
+        "type": "deployManifest"
+      },
+      {
+        "analysisType": "realTime",
+        "canaryConfig": {
+          "beginCanaryAnalysisAfterMins": "1",
+          "canaryAnalysisIntervalMins": "15",
+          "canaryConfigId": "${templateVariables.canaryConfigId}",
+          "lifetimeDuration": "PT0H30M",
+          "metricsAccountName": "${templateVariables.kubernetesCluster}",
+          "scopes": [
+            {
+              "controlLocation": "${templateVariables.kubernetesNamespace}",
+              "controlScope": "baseline-${templateVariables.helmInstallationName}",
+              "experimentLocation": "${templateVariables.kubernetesNamespace}",
+              "experimentScope": "canary-${templateVariables.helmInstallationName}",
+              "extendedScopeParams": {
+                "app": "${templateVariables.helmInstallationName}"
+              },
+              "scopeName": "default"
+            }
+          ],
+          "scoreThresholds": {
+            "marginal": "50",
+            "pass": "75"
+          },
+          "storageAccountName": "gcs"
+        },
+        "completeOtherBranchesThenFail": false,
+        "continuePipeline": true,
+        "failPipeline": false,
+        "name": "Canary Analysis",
+        "refId": "8",
+        "requisiteStageRefIds": [
+          "7"
+        ],
+        "type": "kayentaCanary"
+      },
+      {
+        "completeOtherBranchesThenFail": true,
+        "continuePipeline": false,
+        "failPipeline": false,
+        "name": "if canary analysis pass",
+        "preconditions": [
+          {
+            "context": {
+              "stageName": "Canary Analysis",
+              "stageStatus": "SUCCEEDED"
+            },
+            "failPipeline": true,
+            "type": "stageStatus"
+          }
+        ],
+        "refId": "9",
+        "requisiteStageRefIds": [
+          "8"
+        ],
+        "type": "checkPreconditions"
+      },
+      {
+        "application": "${execution.application}",
+        "failPipeline": true,
+        "name": "deploy stable",
+        "pipeline": "${templateVariables.stablePipelineId}",
+        "pipelineParameters": {
+          "dockerTag": "${#stage('env').outputs.dockerTag}"
+        },
+        "refId": "10",
+        "requisiteStageRefIds": [
+          "9"
+        ],
+        "type": "pipeline",
+        "waitForCompletion": true
+      },
+      {
+        "account": "${templateVariables.kubernetesCluster}",
+        "cloudProvider": "kubernetes",
+        "manifestArtifact": {
+          "artifactAccount": "gcs",
+          "id": "artifact-istio-stable-values",
+          "name": "${templateVariables.istioStable}",
+          "reference": "${templateVariables.istioStable}",
+          "type": "gcs/object"
+        },
+        "manifestArtifactId": null,
+        "moniker": {
+          "app": "${execution.application}"
+        },
+        "name": "deploy stable vs",
+        "namespaceOverride": "${templateVariables.kubernetesNamespace}",
+        "refId": "11",
+        "requisiteStageRefIds": [
+          "8"
+        ],
+        "skipExpressionEvaluation": false,
+        "source": "artifact",
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "enableTraffic": false,
+            "services": []
+          }
+        },
+        "type": "deployManifest"
+      },
+      {
+        "account": "${templateVariables.kubernetesCluster}",
+        "app": "${execution.application}",
+        "cloudProvider": "kubernetes",
+        "kinds": [
+          "configMap",
+          "cronJob",
+          "daemonSet",
+          "deployment",
+          "horizontalpodautoscaler",
+          "ingress",
+          "job",
+          "replicaSet",
+          "secret",
+          "serviceAccount",
+          "statefulSet",
+          "service"
+        ],
+        "labelSelectors": {
+          "selectors": [
+            {
+              "key": "app",
+              "kind": "EQUALS",
+              "values": [
+                "${templateVariables.helmInstallationName}"
+              ]
+            },
+            {
+              "key": "version",
+              "kind": "EQUALS",
+              "values": [
+                "baseline"
+              ]
+            },
+            {
+              "key": "app.kubernetes.io/instance",
+              "kind": "EQUALS",
+              "values": [
+                "baseline-${templateVariables.helmInstallationName}"
+              ]
+            }
+          ]
+        },
+        "location": "${templateVariables.kubernetesNamespace}",
+        "mode": "label",
+        "name": "delete baseline",
+        "options": {
+          "cascading": true
+        },
+        "refId": "12",
+        "requisiteStageRefIds": [
+          "11"
+        ],
+        "type": "deleteManifest"
+      },
+      {
+        "account": "${templateVariables.kubernetesCluster}",
+        "app": "${execution.application}",
+        "cloudProvider": "kubernetes",
+        "kinds": [
+          "configMap",
+          "cronJob",
+          "daemonSet",
+          "deployment",
+          "horizontalpodautoscaler",
+          "ingress",
+          "job",
+          "replicaSet",
+          "secret",
+          "serviceAccount",
+          "statefulSet",
+          "service"
+        ],
+        "labelSelectors": {
+          "selectors": [
+            {
+              "key": "app",
+              "kind": "EQUALS",
+              "values": [
+                "${templateVariables.helmInstallationName}"
+              ]
+            },
+            {
+              "key": "version",
+              "kind": "EQUALS",
+              "values": [
+                "canary"
+              ]
+            },
+            {
+              "key": "app.kubernetes.io/instance",
+              "kind": "EQUALS",
+              "values": [
+                "canary-${templateVariables.helmInstallationName}"
+              ]
+            }
+          ]
+        },
+        "location": "${templateVariables.kubernetesNamespace}",
+        "mode": "label",
+        "name": "delete canary",
+        "options": {
+          "cascading": true
+        },
+        "refId": "13",
+        "requisiteStageRefIds": [
+          "11"
+        ],
+        "type": "deleteManifest"
+      }
+    ]
+  }
+}
