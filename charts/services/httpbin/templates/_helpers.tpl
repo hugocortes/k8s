@@ -37,7 +37,28 @@ Common labels
 {{- define "httpbin.labels" -}}
 helm.sh/chart: {{ include "httpbin.chart" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "httpbin.deploymentSelectorLabels" . }}
+{{- end -}}
+
+{{/*
+Deployment selector labels
+*/}}
+{{- define "httpbin.deploymentSelectorLabels" -}}
 {{ include "httpbin.selectorLabels" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Values.version }}
+version: {{ .Values.version }}
+{{- end }}
+{{- end -}}
+
+{{/*
+Service selector labels
+*/}}
+{{- define "httpbin.serviceSelectorLabels" -}}
+{{ include "httpbin.selectorLabels" . }}
+{{- if not .Values.version }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
 {{- end -}}
 
 {{/*
@@ -45,7 +66,9 @@ Selector labels
 */}}
 {{- define "httpbin.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "httpbin.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Values.version }}
+app: {{ include "httpbin.name" . }}
+{{- end }}
 {{- end -}}
 
 {{/*

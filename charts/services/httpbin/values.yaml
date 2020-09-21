@@ -1,5 +1,7 @@
 # Default values for httpbin.
 
+# version: stable # stable, base, canary
+
 replicaCount: 1
 
 image:
