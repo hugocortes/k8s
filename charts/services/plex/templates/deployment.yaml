@@ -64,13 +64,15 @@ spec:
               containerPort: 8324
               protocol: TCP 
           livenessProbe:
-            initialDelaySeconds: 30
+            failureThreshold: 6
+            initialDelaySeconds: 60
             periodSeconds: 10
             httpGet:
               path: /identity
               port: media-server
           readinessProbe:
-            initialDelaySeconds: 30
+            failureThreshold: 6
+            initialDelaySeconds: 60
             periodSeconds: 10
             httpGet:
               path: /identity

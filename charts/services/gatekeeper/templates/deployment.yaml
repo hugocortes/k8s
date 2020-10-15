@@ -19,7 +19,7 @@ spec:
     {{- if .Values.metrics.enabled }}
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/path: "/oauth/metrics"
+        prometheus.io/path: /oauth/metrics
         prometheus.io/port: "3000"
     {{- end }}
     spec:
