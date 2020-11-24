@@ -31,11 +31,5 @@ spec:
       targetPort: dlna-server
       protocol: TCP
       name: dlna-server
-  {{- if .Values.tautulli.enabled }}
-    - port: {{ .Values.tautulli.service.port }}
-      targetPort: tautulli
-      protocol: TCP
-      name: tautulli
-  {{- end }}
   selector:
     {{- include "plex.selectorLabels" . | nindent 4 }}

@@ -1,9 +1,11 @@
-# Default values for plex.
+# Default values for tautulli.
+
+replicaCount: 1
 
 image:
-  repository: plexinc/pms-docker
+  repository: tautulli/tautulli
   pullPolicy: IfNotPresent
-  tag: plexpass
+  tag: latest
 
 nameOverride: ""
 fullnameOverride: ""
@@ -18,15 +20,8 @@ podSecurityContext: {}
   # fsGroup: 2000
 
 service:
-  annotations: {}
-  hostNetwork: false
+  port: 8181
   type: ClusterIP
-  loadBalancerIP: ""
-  port:
-    pms: 32400
-    pds: 32469
-    pc: 3005
-    pcr: 8324
 
 resources: {}
   # limits:
@@ -44,16 +39,7 @@ affinity: {}
 
 persistence:
   existingClaim: ""
-  existingMoviesClaim: ""
-  existingTVClaim: ""
-  existingTranscodeClaim: ""
+  existingPlexLogsClaim: ""
 
 config:
-  transcodeOnHost: false
   timezone: America/Los_Angeles
-
-env: []
-  # - name: CHANGE_CONFIG_DIR_OWNERSHIP
-  #   value: "false"
-  # - name: ADVERTISE_IP
-  #   value: "http://:32400/"
