@@ -1,7 +1,5 @@
 # Default values for sonarr.
 
-replicaCount: 1
-
 image:
   repository: linuxserver/sonarr
   pullPolicy: IfNotPresent
@@ -13,17 +11,6 @@ fullnameOverride: ""
 serviceAccount:
   create: true
   name: ""
-
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
 
 service:
   type: ClusterIP
@@ -48,6 +35,20 @@ persistence:
   existingDownloadsClaim: ""
   existingTVClaim: ""
 
+config:
+  puid: "911"
+  pgid: "911"
+
 env: []
   # - name: TZ
   #   value: America/Los_Angeles
+
+sidecar:
+  syncInterval: "890"
+  resources: {}
+    # limits:
+    #   cpu: 50m
+    #   memory: 75Mi
+    # requests:
+    #   cpu: 50m
+    #   memory: 75Mi

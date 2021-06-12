@@ -6,7 +6,9 @@ metadata:
   labels:
     {{- include "sonarr.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 1 # sqlite requires lock mounting
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "sonarr.selectorLabels" . | nindent 6 }}
@@ -15,21 +17,84 @@ spec:
       labels:
         {{- include "sonarr.selectorLabels" . | nindent 8 }}
     spec:
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ .Chart.Name }}-scp
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            privileged: true
+          image: ubuntu
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - >-
+              dd if=/dev/zero of=/ramdisk/image.ext4 count=0 bs=1 seek=400M;
+              mkfs.ext4 /ramdisk/image.ext4;
+              mount /mnt/ramdisk-mount /ramdisk/image.ext4;
+              cp -fvp /config/*.* /mnt/ramdisk-mount;
+              find /mnt/ramdisk-mount -maxdepth 1 -type f | xargs chown {{ .Values.config.puid }}:{{ .Values.config.pgid }};
+              while true; do
+                sleep {{ .Values.sidecar.syncInterval }};
+                sync /mnt/ramdisk-mount/*.*;
+                fsfreeze --freeze /mnt/ramdisk-mount;
+                sleep 10;
+                echo "starting copy back to nfs... $(date -u)"
+                cp -fv /mnt/ramdisk-mount/*.* /config/;
+                echo "finished copy back to nfs... $(date -u)"
+                fsfreeze --unfreeze /mnt/ramdisk-mount;
+              done;
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                - umount /mnt/ramdisk-mount;
+          volumeMounts:
+            - name: ramdisk-mount
+              mountPath: /mnt/ramdisk-mount
+              mountPropagation: Bidirectional
+            - name: ramdisk
+              mountPath: /ramdisk
+            - name: config
+              mountPath: /config
+          resources:
+            {{- toYaml .Values.sidecar.resources | nindent 12 }}
+        - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if .Values.env }}
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - >-
+              until [ -f "/config/nzbdrone.db" ];
+              do
+                sleep 1;
+              done;
+              /init
           env:
+            - name: PUID
+              value: {{ .Values.config.puid | quote }}
+            - name: PGID
+              value: {{ .Values.config.pgid | quote }}
+          {{- if .Values.env }}
             {{- toYaml .Values.env | nindent 12 }}
           {{- end }}
           volumeMounts:
-            - name: conf
+            - name: ramdisk-mount
               mountPath: /config
+              mountPropagation: HostToContainer
+            - name: config
+              mountPath: /config/Backups
+              subPath: Backups
+            - name: config
+              mountPath: /config/MediaCover
+              subPath: MediaCover
+            - name: config
+              mountPath: /config/logs
+              subPath: logs
+            - name: config
+              mountPath: /config/xdg
+              subPath: xdg
             - name: downloads
               mountPath: /downloads
               subPath: complete
@@ -52,7 +117,13 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - name: conf
+        - name: ramdisk
+          emptyDir:
+            medium: Memory
+            sizeLimit: 400Mi
+        - name: ramdisk-mount
+          emptyDir: {}
+        - name: config
           persistentVolumeClaim:
             claimName: {{ .Values.persistence.existingClaim }}
         - name: downloads
