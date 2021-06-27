@@ -1,0 +1,70 @@
+# per cluster configuration, to be used with operator.yaml
+
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  meshConfig:
+    defaultConfig:
+      zipkinAddress: ""
+      tracing:
+        sampling: 1 # percentage value 0-100
+        custom_tags:
+          cluster:
+            literal:
+              value: ""
+        zipkin:
+          address: ""
+  values:
+    global:
+      proxy:
+        tracer: zipkin
+      tracer:
+        zipkin:
+          address: "" # TODO remove workaround https://github.com/istio/istio/issues/30665
+  components:
+    ingressGateways:
+    - name: istio-ingressgateway
+      enabled: true
+      k8s:
+        # TODO remove workaround https://github.com/istio/istio/issues/30665
+        env:
+        - name: PROXY_CONFIG
+          value: |
+            {"tracing":{"sampling": 1,"custom_tags":{"cluster":{"literal":{"value":""}}},"zipkin":{"address":""}}}
+        service:
+          loadBalancerIP: ""
+
+    - name: istio-internalgateway
+      enabled: true
+      label:
+        app: istio-internalgateway
+        istio: internalgateway
+      k8s:
+        # TODO remove workaround https://github.com/istio/istio/issues/30665
+        env:
+        - name: PROXY_CONFIG
+          value: |
+            {"tracing":{"sampling": 50,"custom_tags":{"cluster":{"literal":{"value":""}}},"zipkin":{"address":""}}}
+        service:
+          loadBalancerIP: ""
+          ports:
+          - port: 15021
+            targetPort: 15021
+            name: status-port
+            protocol: TCP
+          - port: 80
+            targetPort: 8080
+            name: http2
+            protocol: TCP
+          - port: 443
+            targetPort: 8443
+            name: https
+            protocol: TCP
+          - port: 15012
+            targetPort: 15012
+            name: tcp-istiod
+            protocol: TCP
+          - port: 15443
+            targetPort: 15443
+            name: tls
+            protocol: TCP

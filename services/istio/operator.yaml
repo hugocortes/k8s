@@ -1,0 +1,107 @@
+# operator configuration with low reosurces
+# istio profiles
+# https://github.com/istio/istio/blob/master/manifests/profiles/default.yaml
+
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  meshConfig:
+    # debugging
+    # accessLogFile: /dev/stdout
+    dnsRefreshRate: 300s
+    protocolDetectionTimeout: 500s
+    enableTracing: true
+    defaultConfig:
+      holdApplicationUntilProxyStarts: true
+      tracing:
+        sampling: 50
+        custom_tags:
+          cluster:
+            literal:
+              value: ""
+        zipkin:
+          address: ""
+  components:
+    egressGateways:
+      - name: istio-egressgateway
+        enabled: true
+        k8s:
+          service:
+            ports:
+            - port: 80
+              name: http2
+              targetPort: 8080
+              protocol: TCP
+            - port: 443
+              name: https
+              targetPort: 8443
+              protocol: TCP
+            - port: 15443
+              targetPort: 15443
+              name: tls
+              protocol: TCP
+    pilot:
+      enabled: true
+      k8s:
+        podAnnotations:
+          moniker.spinnaker.io/application: istio
+        serviceAnnotations:
+          moniker.spinnaker.io/application: istio
+  values:
+    sidecarInjectorWebhook:
+      rewriteAppHTTPProbe: true
+    pilot:
+      # autoscaleMin: 1
+      # autoscaleMax: 3
+      resources:
+        limits:
+          cpu: 250m
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 1Gi
+    gateways:
+      istio-ingressgateway:
+        runAsRoot: true
+        serviceAnnotations:
+          moniker.spinnaker.io/application: istio
+        podAnnotations:
+          moniker.spinnaker.io/application: istio
+        resources:
+          limits:
+            cpu: 250m
+            memory: 350Mi
+          requests:
+            cpu: 200m
+            memory: 350Mi
+      istio-egressgateway:
+        runAsRoot: true
+        serviceAnnotations:
+          moniker.spinnaker.io/application: istio
+        podAnnotations:
+          moniker.spinnaker.io/application: istio
+        resources:
+          limits:
+            cpu: 200m
+            memory: 350Mi
+          requests:
+            cpu: 150m
+            memory: 350Mi
+    global:
+      configValidation: false
+      proxy:
+        resources:
+          limits:
+            cpu: 100m
+            memory: 125Mi
+          requests:
+            cpu: 100m
+            memory: 125Mi
+      proxy_init:
+        resources:
+          limits:
+            cpu: 50m
+            memory: 50Mi
+          requests:
+            cpu: 10m
+            memory: 10Mi
