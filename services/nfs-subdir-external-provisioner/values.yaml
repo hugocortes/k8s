@@ -1,4 +1,4 @@
-replicaCount: 1
+replicaCount: 3
 nfs:
   server: ""
   path: ""
@@ -7,12 +7,12 @@ nfs:
   - nfsvers=4
   - rw
   - port=2049
+storageClass:
+  defaultClass: true
 resources:
   requests:
    cpu: 50m
-   memory: 128Mi
+   memory: 75Mi
   limits:
    cpu: 75m
-   memory: 128Mi
-storageClass:
-  defaultClass: true
+   memory: 75Mi
