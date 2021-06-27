@@ -4,3 +4,4 @@
 !.helmignore
 spinnaker.yaml
 **/ignore/*
+services/spinnaker/config.yaml

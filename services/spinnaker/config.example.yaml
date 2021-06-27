@@ -1,0 +1,153 @@
+# additional configuration for secrets
+
+halyard:
+  additionalSecrets:
+    name: ""
+  additionalScripts:
+    data:
+      configure_canary.sh: |-
+        echo "configuring canary"
+        $HAL_COMMAND config canary enable
+        $HAL_COMMAND config canary google enable
+        $HAL_COMMAND config canary prometheus enable
+        $HAL_COMMAND config metric-stores prometheus enable
+
+        $HAL_COMMAND config canary edit \
+          --default-metrics-store prometheus
+        $HAL_COMMAND config canary google edit \
+          --gcs-enabled true \
+          --stackdriver-enabled false
+        $HAL_COMMAND config canary google account add gcs \
+          --project $GCS_PROJECT \
+          --json-path /opt/gcs/key.json \
+          --bucket $GCS_BUCKET
+
+        $HAL_COMMAND config canary prometheus account add prometheus \
+          --base-url $PROMETHEUS_URL
+      enable_oauth2: |-
+        echo "enabling oauth2"
+
+        $HAL_COMMAND config security authn oauth2 edit \
+          --provider other \
+          --client-id $CLIENT_ID \
+          --client-secret $CLIENT_SECRET \
+          --pre-established-redirect-uri $SPIN_REDIRECT_URI
+
+        $HAL_COMMAND config security ui edit \
+          --override-base-url $SPIN_UI
+        $HAL_COMMAND config security api edit \
+          --override-base-url $SPIN_API
+
+        $HAL_COMMAND config security authn oauth2 enable
+  additionalProfileConfigMaps:
+    data:
+      clouddriver-local.yml:
+        services:
+          redis:
+            baseUrl: redis://:PASSWORD@HOST:PORT
+      echo-local.yml:
+        mail:
+          enabled: true
+          from: ""
+        spring:
+          mail:
+            host: ""
+            port: 587
+            username: ""
+            password: ""
+            properties:
+              mail:
+                smtp:
+                  auth: true
+                  starttls:
+                    enable: true
+                transport:
+                  protocol: true
+
+      # migrating to sql
+      # front50-local.yml:
+      #   sql:
+      #     enabled: true
+      #     connectionPools:
+      #       default:
+      #         # https://github.com/spinnaker/kork/blob/master/kork-sql/src/main/kotlin/com/netflix/spinnaker/kork/sql/config/ConnectionPoolProperties.kt
+      #         default: true
+      #         jdbcUrl: ""
+      #         user: ""
+      #         password: ""
+      #         connectionTimeout: 15000
+      #         maxLifetime: 90000
+      #         maxPoolSize: 100
+      #     migration:
+      #       jdbcUrl: ""
+      #       user: ""
+      #       password: ""
+      #       connectionTimeout: 15000
+      #       maxLifetime: 90000
+      #       maxPoolSize: 100
+      #   spinnaker:
+      #     gcs:
+      #       enabled: false
+      #     migration: 
+      #       enabled: false
+      #       primaryClass: com.netflix.spinnaker.front50.model.GcsStorageService
+      #       previousClass: com.netflix.spinnaker.front50.model.SqlStorageService
+      #       compositeStorageService:
+      #         enabled: true
+      #         reads:
+      #           primary: false
+      #           previous: true # only read from previous
+
+      gate-local.yml:
+        security:
+          oauth2:
+            enabled: true
+            client:
+              clientId: ""
+              clientSecret: ""
+              userAuthorizationUri: ""
+              accessTokenUri:
+              scope: openid email profile
+            resource:
+              userInfoUri: ""
+            # keycloak mappings
+            userInfoMapping:
+              email: email
+              firstName: given_name
+              lastName: family_name
+              username: preferred_username
+      igor-local.yml:
+        services:
+          redis:
+            baseUrl: redis://:PASSWORD@HOST:PORT
+      orca-local.yml:
+        services:
+          redis:
+            baseUrl: redis://:PASSWORD@HOST:PORT
+      rosco-local.yml:
+        services:
+          redis:
+            baseUrl: redis://:PASSWORD@HOST:PORT
+
+# <name>: password
+dockerRegistryAccountSecret: "" # secret that contains docker credentials
+
+gcs:
+  enabled: true
+  project: ""
+  bucket: ""
+  bucketLocation: "us"
+  secretName: "" # secret that contains gcs credentials in `key.json`
+
+redis:
+  enabled: false
+  external:
+    host: ""
+    port: 6379
+    password: ""
+
+kubeConfig:
+  secretName: "" # secret that contains kube config
+  secretKey: config
+  contexts: []
+  deploymentContext: ""

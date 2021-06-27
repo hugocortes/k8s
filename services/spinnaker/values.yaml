@@ -1,24 +1,27 @@
----
-
 halyard:
-  spinnakerVersion: 1.20.0
+  spinnakerVersion: 1.25.0
   image:
-    tag: 1.34.0
-  additionalSecrets:
-    name: ""
+    tag: 1.42.1
+
+  # see config.example.yaml
+  # additionalSecrets: {}
+
   additionalScripts:
     enabled: true
     configMapName: spinnaker-halyard-config
     configMapKey: config.sh
     create: true
     data:
+      # see config.example.yaml
+      # enable_canary.sh: |-
+
       enable_helm_artifact.sh: |-
         echo "enabling helm artifact"
         $HAL_COMMAND config artifact helm enable
         $HAL_COMMAND config artifact helm account add bitnami \
           --repository https://charts.bitnami.com/bitnami
         $HAL_COMMAND config artifact helm account add chartmuseum \
-          --repository http://chartmuseum.storage:8080
+          --repository http://chartmuseum.ops:8080
         $HAL_COMMAND config artifact helm account add concourse \
           --repository https://concourse-charts.storage.googleapis.com
         $HAL_COMMAND config artifact helm account add codecentric \
@@ -29,18 +32,22 @@ halyard:
           --repository https://helm.releases.hashicorp.com
         $HAL_COMMAND config artifact helm account add influxdata \
           --repository https://helm.influxdata.com
-        $HAL_COMMAND config artifact helm account add istio-1.4 \
-          --repository https://storage.googleapis.com/istio-release/releases/1.4.4/charts
-        $HAL_COMMAND config artifact helm account add istio-1.5 \
-          --repository https://storage.googleapis.com/istio-release/releases/1.5.6/charts
+        $HAL_COMMAND config artifact helm account add jaegertracing \
+          --repository https://jaegertracing.github.io/helm-charts
         $HAL_COMMAND config artifact helm account add jetstack \
           --repository https://charts.jetstack.io
+        $HAL_COMMAND config artifact helm account add kiali \
+          --repository https://kiali.org/helm-charts
+        $HAL_COMMAND config artifact helm account add nfs-subdir-external-provisioner \
+          --repository https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner
         $HAL_COMMAND config artifact helm account add openfaas \
           --repository https://openfaas.github.io/faas-netes
         $HAL_COMMAND config artifact helm account add pomerium \
           --repository https://helm.pomerium.io
+        $HAL_COMMAND config artifact helm account add prometheus-community \
+          --repository https://prometheus-community.github.io/helm-charts
         $HAL_COMMAND config artifact helm account add stable \
-          --repository https://storage.googleapis.com/homelabprojects-public
+          --repository https://storage.googleapis.com/homelabops-public
       enable_gcs.sh: |-
         echo "enabling gcs artifact"
         $HAL_COMMAND config artifact gcs enable
@@ -49,63 +56,57 @@ halyard:
       enable_no_auth_http.sh: |-
         echo "enabling http artifact"
         $HAL_COMMAND config artifact http enable
-      enable_metrics.sh: |-
-        echo "enabling prometheus"
-        $HAL_COMMAND config metric-stores prometheus enable
-      configure_kubernetes.sh: |-
-        echo "configuring kubernetes accounts"
-        $HAL_COMMAND config provider kubernetes account edit prometheus \
-          --live-manifest-calls true
-        $HAL_COMMAND config provider kubernetes account edit hestia \
-          --live-manifest-calls true
-        $HAL_COMMAND config provider kubernetes account edit athens \
-          --live-manifest-calls true
       configure_component_sizing.sh: |-
         echo "configuring component sizing"
         # requires replica=1
         $HAL_COMMAND config deploy component-sizing echo edit \
           --container-limits-cpu 250m \
-          --container-requests-cpu 100m \
+          --container-requests-cpu 150m \
           --container-limits-memory 1Gi \
           --container-requests-memory 1Gi
         $HAL_COMMAND config deploy component-sizing igor edit \
           --container-limits-cpu 250m \
-          --container-requests-cpu 100m \
-          --container-limits-memory 700Mi \
-          --container-requests-memory 700Mi
+          --container-requests-cpu 150m \
+          --container-limits-memory 750Mi \
+          --container-requests-memory 750Mi
 
         # requires more resources
         $HAL_COMMAND config deploy component-sizing clouddriver edit \
-          --container-limits-cpu 1.5 \
-          --container-requests-cpu 750m \
-          --container-limits-memory 1.75Gi \
-          --container-requests-memory 1.75Gi \
+          --container-limits-cpu 2.5 \
+          --container-requests-cpu 2 \
+          --container-limits-memory 2Gi \
+          --container-requests-memory 2Gi \
           --replicas 1
         $HAL_COMMAND config deploy component-sizing orca edit \
-          --container-limits-cpu 500m \
-          --container-requests-cpu 500m \
-          --container-limits-memory 1Gi \
-          --container-requests-memory 1Gi \
+          --container-limits-cpu 1 \
+          --container-requests-cpu 750m \
+          --container-limits-memory 1.5Gi \
+          --container-requests-memory 1.5Gi \
           --replicas 1
 
         $HAL_COMMAND config deploy component-sizing deck edit \
           --container-limits-cpu 250m \
-          --container-requests-cpu 100m \
-          --container-limits-memory 100Mi \
-          --container-requests-memory 100Mi
+          --container-requests-cpu 150m \
+          --container-limits-memory 250Mi \
+          --container-requests-memory 250Mi
         $HAL_COMMAND config deploy component-sizing front50 edit \
           --container-limits-cpu 250m \
           --container-requests-cpu 150m \
-          --container-limits-memory 1Gi \
-          --container-requests-memory 1Gi
+          --container-limits-memory 750Mi \
+          --container-requests-memory 750Mi
         $HAL_COMMAND config deploy component-sizing gate edit \
           --container-limits-cpu 250m \
           --container-requests-cpu 150m \
-          --container-limits-memory 1Gi \
-          --container-requests-memory 1Gi
+          --container-limits-memory 750Mi \
+          --container-requests-memory 750Mi
+        $HAL_COMMAND config deploy component-sizing kayenta edit \
+          --container-limits-cpu 250m \
+          --container-requests-cpu 150m \
+          --container-limits-memory 1.25Gi \
+          --container-requests-memory 1.25Gi
         $HAL_COMMAND config deploy component-sizing rosco edit \
           --container-limits-cpu 250m \
-          --container-requests-cpu 100m \
+          --container-requests-cpu 150m \
           --container-limits-memory 500Mi \
           --container-requests-memory 500Mi
   additionalProfileConfigMaps:
@@ -113,92 +114,56 @@ halyard:
       clouddriver-local.yml:
         env:
           JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
-        services:
-          redis:
-            baseUrl: ""
+        # see config.example.yaml
+        # services: {}
       deck-local.yml:
         env:
           JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
       echo-local.yml:
         env:
           JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
-        mail:
-          enabled: true
-          from: ""
-        spring:
-          mail:
-            host: ""
-            username: ""
-            password: ""
-            port: 587
-            properties:
-              mail:
-                smtp:
-                  auth: true
-                  starttls:
-                    enable: true
-                transport:
-                  protocol: true
+        # see config.example.yaml
+        # mail: {}
+        # spring: {}
       front50-local.yml:
         env:
           JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
-        sql:
-          enabled: true
-          connectionPools:
-            default:
-              # https://github.com/spinnaker/kork/blob/master/kork-sql/src/main/kotlin/com/netflix/spinnaker/kork/sql/config/ConnectionPoolProperties.kt
-              default: true
-              jdbcUrl: ""
-              user: ""
-              password: ""
-              connectionTimeout: 15000
-              maxLifetime: 90000
-              maxPoolSize: 100
-          migration:
-            jdbcUrl: ""
-            user: ""
-            password: ""
-            connectionTimeout: 15000
-            maxLifetime: 90000
-            maxPoolSize: 100
-        spinnaker:
-          gcs:
-            enabled: false
       gate-local.yml:
         env:
           JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
-        security:
-          oauth2:
-            client:
-              # clientId: 
-              # clientSecret:
-              # userAuthorizationUri:
-              # accessTokenUri:
-              scope: openid email profile
-            resource: {}
-              # userInfoUri:
-            userInfoMapping:
-              email: email
-              firstName: given_name
-              lastName: family_name
-              username: preferred_username
-        tomcat:
-          protocolHeader: X-Forwarded-Proto
-          remoteIpHeader: X-Forwarded-For
-          internalProxies: .*
+        okHttpClient:
+          connectTimeoutMs: 90000
+          readTimeoutMs: 90000
+        # see config.example.yaml
+        # security: {}
+        server:
+          tomcat:
+            protocolHeader: X-Forwarded-Proto
+            remoteIpHeader: X-Forwarded-For
+            internalProxies: .*
+      # fast forwarding
+      # curl -X POST $IGOR/admin/pollers/fastforward/dockerTagMonitor?partition=
       igor-local.yml:
         env:
           JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
         spinnaker:
-          pollInterval: 60
+          pollInterval: 180
           pollingSafeguard:
-            itemUpperThreshold: 40000
+            itemUpperThreshold: 50000
+        okHttpClient:
+          connectTimeoutMs: 90000
+          readTimeoutMs: 90000
+        # see config.example.yaml
+        # services: {}
+      kayenta-loca.yml:
+        env:
+          JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
+        okHttpClient:
+          connectTimeoutMs: 90000
+          readTimeoutMs: 90000
       orca-local.yml:
         env:
           JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
-        services:
-          redis:
-            baseUrl: ""
         pollers:
           oldPipelineCleanup:
             enabled: true
@@ -208,64 +173,90 @@ halyard:
         tasks:
           daysOfExecutionHistory: 14
         okHttpClient:
-          connectTimeoutMs: 120000
-          readTimeoutMs: 120000
+          connectTimeoutMs: 90000
+          readTimeoutMs: 90000
+        # see config.example.yaml
+        # services: {}
       rosco-local.yml:
         env:
           JAVA_OPTS: "-XX:MaxRAMPercentage=90.0"
         okHttpClient:
-          connectTimeoutMs: 120000
-          readTimeoutMs: 120000
+          connectTimeoutMs: 90000
+          readTimeoutMs: 90000
+        # see config.example.yaml
+        # services: {}
       settings-local.js: |
         window.spinnakerSettings.notifications.email = {
           enabled: true
         }
       spinnaker-local.yml:
+        redis:
+          timeout: 45000
         logging:
           level:
             com:
               netflix:
-                spinnaker: WARN
-              retrofit: WARN
+                spinnaker: ERROR
+              retrofit: ERROR
   resources:
     requests:
-      cpu: 750m
-      memory: 1.5Gi
+      cpu: 500m
+      memory: 1Gi
     limits:
-      cpu: 750m
-      memory: 1.5Gi
+      cpu: 1
+      memory: 1.25Gi
+  env:
+    - name: JAVA_OPTS
+      value: -XX:MaxRAMPercentage=90.0
+
+# see config.example.yaml
+# dockerRegistryAccountSecret: "" 
 dockerRegistries:
+
 - name: dockerhub
   address: index.docker.io
+  username: hugocortes
   repositories:
+  - library/elasticsearch
+  - library/logstash
+  - library/kibana
+  - bitnami/metallb-controller
+  - bitnami/metallb-speaker
   - bitnami/mongodb
   - bitnami/postgresql
-  - bitnami/redis
   - chartmuseum/chartmuseum
+  - concoursee/concourse
   - governmentpaas/curl-ssl
   - grafana/grafana
   - graylog/graylog
   - hashicorp/vault-k8s
+  - hugocortes/backup
+  - hugocortes/keycloak-extensions
   - hugocortes/me
+  - hugocortes/ynab-metrics
   - idobry/chartmuseumui
+  - jaegertracing/jaeger-agent
+  - jaegertracing/jaeger-cassandra-schema
+  - jaegertracing/jaeger-collector
+  - jaegertracing/jaeger-es-index-cleaner
+  - jaegertracing/jaeger-es-rollover
+  - jaegertracing/jaeger-ingester
+  - jaegertracing/jaeger-query
+  - jaegertracing/spark-dependencies
   - jboss/keycloak
   - kennethreitz/httpbin
   - keycloak/keycloak-gatekeeper
-  - library/elasticsearch
   - library/influxdb
   - library/mysql
   - library/nginx
   - library/vault
   - linuxserver/bookstack
-  - linuxserver/grocy
   - linuxserver/jackett
   - linuxserver/ombi
   - linuxserver/radarr
   - linuxserver/sabnzbd
   - linuxserver/sonarr
   - linuxserver/transmission
-  - metallb/controller
-  - metallb/speaker
   - plexinc/pms-docker
   - miniflux/miniflux
   - pomerium/pomerium
@@ -275,35 +266,31 @@ dockerRegistries:
   - technosoft2000/calibre-web
   - usefathom/fathom
 - name: gcr
-  address: gcr.io
+  address: k8s.gcr.io
   repositories:
   - google-containers/metrics-server-amd64
   - google-containers/metrics-server-arm
+  - kube-state-metrics/kube-state-metrics
+  - sig-storage/nfs-subdir-external-provisioner
 - name: quay
   address: quay.io
   repositories:
-  - external_storage/nfs-client-provisioner
+  - kiali/kiali
+  - prometheus/node-exporter
+  - prometheus/prometheus
 spinnakerFeatureFlags:
   - pipeline-templates
   - managed-pipeline-templates-v2-ui
 minio:
   enabled: false
+# see config.example.yaml
 gcs:
   enabled: true
+# see config.example.yaml
 redis:
   enabled: false
-  external:
-    host: ""
-    port: ""
-    password: ""
+# see config.example.yaml
 kubeConfig:
   enabled: true
-  secretName: ""
-  secretKey: config
-  contexts:
-  - prometheus
-  - hestia
-  - athens
-  deploymentContext: prometheus
   omittedNameSpaces:
   - kube-public
