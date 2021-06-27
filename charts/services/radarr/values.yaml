@@ -43,7 +43,7 @@ env: []
   # - name: TZ
   #   value: America/Los_Angeles
 
-sidecar:
+nfs:
   syncInterval: "890"
   resources: {}
     # limits:

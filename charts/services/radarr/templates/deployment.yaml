@@ -18,7 +18,7 @@ spec:
         {{- include "radarr.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-        - name: {{ .Chart.Name }}-scp
+        - name: nfs-sync
           securityContext:
             privileged: true
           image: ubuntu
@@ -31,15 +31,15 @@ spec:
               dd if=/dev/zero of=/ramdisk/image.ext4 count=0 bs=1 seek=400M;
               mkfs.ext4 /ramdisk/image.ext4;
               mount /mnt/ramdisk-mount /ramdisk/image.ext4;
-              cp -fvp /config/*.* /mnt/ramdisk-mount;
+              cp -fvp /sqlite/*.* /mnt/ramdisk-mount;
               find /mnt/ramdisk-mount -maxdepth 1 -type f | xargs chown {{ .Values.config.puid }}:{{ .Values.config.pgid }};
               while true; do
-                sleep {{ .Values.sidecar.syncInterval }};
+                sleep {{ .Values.nfs.syncInterval }};
                 sync /mnt/ramdisk-mount/*.*;
                 fsfreeze --freeze /mnt/ramdisk-mount;
                 sleep 10;
                 echo "starting copy back to nfs... $(date -u)"
-                cp -fv /mnt/ramdisk-mount/*.* /config/;
+                cp -fv /mnt/ramdisk-mount/*.* /sqlite/;
                 echo "finished copy back to nfs... $(date -u)"
                 fsfreeze --unfreeze /mnt/ramdisk-mount;
               done;
@@ -55,9 +55,9 @@ spec:
             - name: ramdisk
               mountPath: /ramdisk
             - name: config
-              mountPath: /config
+              mountPath: /sqlite
           resources:
-            {{- toYaml .Values.sidecar.resources | nindent 12 }}
+            {{- toYaml .Values.nfs.resources | nindent 12 }}
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
