@@ -64,7 +64,7 @@ spec:
               mountPath: /ramdisk
             - name: config
               mountPath: /sqlite
-              subPath: app
+              subPath: web
           resources:
             {{- toYaml .Values.nfs.resources | nindent 12 }}
         - name: {{ .Chart.Name }}
@@ -85,13 +85,13 @@ spec:
               mountPropagation: HostToContainer
             - name: config
               mountPath: /calibre-web/app/vendor
-              subPath: app/vendor
+              subPath: web/vendor
             - name: config
               mountPath: /calibre-web/app/test
-              subPath: app/test
+              subPath: web/test
             - name: config
               mountPath: /calibre-web/app/cps
-              subPath: app/cps
+              subPath: web/cps
             - name: library
               mountPath: /books
           ports:
