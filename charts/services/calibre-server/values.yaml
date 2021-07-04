@@ -1,7 +1,8 @@
-# Default values for calibre-web.
+# Default values for calibre-server.
+# Chart uses no probes due to ui being ported through guacamole
 
 image:
-  repository: technosoft2000/calibre-web
+  repository: linuxserver/calibre
   pullPolicy: IfNotPresent
   tag: latest
 
@@ -25,7 +26,10 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 8083
+  server:
+    port: 8080
+  sharing:
+    port: 8081
 
 resources: {}
   # limits:
@@ -46,16 +50,6 @@ persistence:
   existingLibraryClaim: ""
 
 config:
-  puid: "911"
-  pgid: "911"
+  puid: "1000"
+  pgid: "1000"
   timezone: America/Los_Angeles
-
-nfs:
-  syncInterval: "890"
-  resources: {}
-    # limits:
-    #   cpu: 50m
-    #   memory: 75Mi
-    # requests:
-    #   cpu: 50m
-    #   memory: 75Mi
