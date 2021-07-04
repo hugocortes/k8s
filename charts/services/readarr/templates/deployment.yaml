@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "readarr.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "readarr.labels" . | nindent 4 }}
+spec:
+  replicas: 1 # sqlite requires lock mounting
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "readarr.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "readarr.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        # /config directory
+        # cache.db  config.xml  logs  logs.db  readarr.db  readarr.pid
+        - name: nfs-sync
+          securityContext:
+            privileged: true
+          image: ubuntu
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - >-
+              dd if=/dev/zero of=/ramdisk/image.ext4 count=0 bs=1 seek=400M;
+              mkfs.ext4 /ramdisk/image.ext4;
+              mount /mnt/ramdisk-mount /ramdisk/image.ext4;
+              cp -fvp /sqlite/*.* /mnt/ramdisk-mount;
+              find /mnt/ramdisk-mount -maxdepth 1 -type f | xargs chown {{ .Values.config.puid }}:{{ .Values.config.pgid }};
+              while true; do
+                sleep {{ .Values.nfs.syncInterval }};
+                sync /mnt/ramdisk-mount/*.*;
+                fsfreeze --freeze /mnt/ramdisk-mount;
+                sleep 10;
+                echo "starting copy back to nfs... $(date -u)"
+                cp -fv /mnt/ramdisk-mount/*.* /sqlite/;
+                echo "finished copy back to nfs... $(date -u)"
+                fsfreeze --unfreeze /mnt/ramdisk-mount;
+              done;
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                - umount /mnt/ramdisk-mount;
+          volumeMounts:
+            - name: ramdisk-mount
+              mountPath: /mnt/ramdisk-mount
+              mountPropagation: Bidirectional
+            - name: ramdisk
+              mountPath: /ramdisk
+            - name: config
+              mountPath: /sqlite
+          resources:
+            {{- toYaml .Values.nfs.resources | nindent 12 }}
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: PUID
+              value: {{ .Values.config.puid | quote }}
+            - name: PGID
+              value: {{ .Values.config.pgid | quote }}
+          {{- if .Values.env }}
+            {{- toYaml .Values.env | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: ramdisk-mount
+              mountPath: /config
+              mountPropagation: HostToContainer
+            - name: config
+              mountPath: /config/logs
+              subPath: logs
+            - name: config
+              mountPath: /config/backups
+              subPath: backups
+            # TODO avoid root paths, use common parent when moving off nfs
+            - name: downloads
+              mountPath: /downloads
+              subPath: complete
+            - name: ebooks
+              mountPath: /books # must match calibre-server path
+          ports:
+            - name: http
+              containerPort: 8787
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            tcpSocket:
+              port: http
+          readinessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            tcpSocket:
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: ramdisk
+          emptyDir:
+            medium: Memory
+            sizeLimit: 400Mi
+        - name: ramdisk-mount
+          emptyDir: {}
+        - name: config
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingDownloadsClaim }}
+        - name: ebooks
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingEBooksClaim }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
