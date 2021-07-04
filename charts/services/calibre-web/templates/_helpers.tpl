@@ -2,7 +2,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "calibre.name" -}}
+{{- define "calibre-web.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -11,7 +11,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "calibre.fullname" -}}
+{{- define "calibre-web.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -27,33 +27,33 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "calibre.chart" -}}
+{{- define "calibre-web.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Common labels
 */}}
-{{- define "calibre.labels" -}}
-helm.sh/chart: {{ include "calibre.chart" . }}
+{{- define "calibre-web.labels" -}}
+helm.sh/chart: {{ include "calibre-web.chart" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{ include "calibre.selectorLabels" . }}
+{{ include "calibre-web.selectorLabels" . }}
 {{- end -}}
 
 {{/*
 Selector labels
 */}}
-{{- define "calibre.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "calibre.name" . }}
+{{- define "calibre-web.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "calibre-web.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "calibre.serviceAccountName" -}}
+{{- define "calibre-web.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create -}}
-    {{ default (include "calibre.fullname" .) .Values.serviceAccount.name }}
+    {{ default (include "calibre-web.fullname" .) .Values.serviceAccount.name }}
 {{- else -}}
     {{ default "default" .Values.serviceAccount.name }}
 {{- end -}}

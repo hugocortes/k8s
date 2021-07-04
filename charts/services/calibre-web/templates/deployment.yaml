@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "calibre.fullname" . }}
+  name: {{ include "calibre-web.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "calibre.labels" . | nindent 4 }}
+    {{- include "calibre-web.labels" . | nindent 4 }}
 spec:
   replicas: 1 # sqlite requires lock mounting
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      {{- include "calibre.selectorLabels" . | nindent 6 }}
+      {{- include "calibre-web.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "calibre.selectorLabels" . | nindent 8 }}
+        {{- include "calibre-web.selectorLabels" . | nindent 8 }}
     spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      serviceAccountName: {{ include "calibre.serviceAccountName" . }}
+      serviceAccountName: {{ include "calibre-web.serviceAccountName" . }}
       containers:
         - name: nfs-sync
           securityContext:
@@ -74,7 +74,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: USE_CONFIG_DIR
-              value: "true"
+              value: "false"
             - name: SET_CONTAINER_TIMEZONE
               value: "true"
             - name: CONTAINER_TIMEZONE
@@ -94,10 +94,6 @@ spec:
               subPath: app/cps
             - name: library
               mountPath: /books
-            # TODO determine if this is even required
-            - name: config
-              mountPath: /calibre-web/config
-              subPath: config
           ports:
             - name: http
               containerPort: 8083

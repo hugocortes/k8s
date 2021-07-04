@@ -1,4 +1,4 @@
-# Default values for calibre.
+# Default values for calibre-web.
 
 replicaCount: 1
 
