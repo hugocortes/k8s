@@ -230,6 +230,7 @@ dockerRegistries:
   - grafana/grafana
   - graylog/graylog
   - hashicorp/vault-k8s
+  - hotio/readarr
   - hugocortes/backup
   - hugocortes/keycloak-extensions
   - hugocortes/me
@@ -251,6 +252,7 @@ dockerRegistries:
   - library/nginx
   - library/vault
   - linuxserver/bookstack
+  - linuxserver/calibre
   - linuxserver/jackett
   - linuxserver/ombi
   - linuxserver/radarr
