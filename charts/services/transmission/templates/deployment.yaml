@@ -36,6 +36,12 @@ spec:
             - name: http
               containerPort: 9091
               protocol: TCP
+            - name: tcp-peer
+              containerPort: 54949
+              protocol: TCP
+            - name: udp-peer
+              containerPort: 54949
+              protocol: UDP
           livenessProbe:
             initialDelaySeconds: 15
             periodSeconds: 5

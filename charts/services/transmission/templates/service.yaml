@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "transmission.fullname" . }}-tcp
+  name: {{ include "transmission.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "transmission.labels" . | nindent 4 }}
@@ -16,10 +16,30 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
-    - port: 51413
-      targetPort: 51413
+  selector:
+    {{- include "transmission.selectorLabels" . | nindent 4 }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "transmission.fullname" . }}-tcp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "transmission.labels" . | nindent 4 }}
+{{- with .Values.service.peer.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  type: {{ .Values.service.peer.type }}
+  loadBalancerIP: {{ .Values.service.peer.loadBalancerIP }}
+  ports:
+    - port: {{ .Values.service.peer.port }}
+      targetPort: {{ .Values.service.peer.port }}
       protocol: TCP
-      name: peer-tcp
+      name: tcp-peer
   selector:
     {{- include "transmission.selectorLabels" . | nindent 4 }}
 
@@ -40,9 +60,9 @@ spec:
   type: {{ .Values.service.peer.type }}
   loadBalancerIP: {{ .Values.service.peer.loadBalancerIP }}
   ports:
-    - port: 51413
-      targetPort: 51413
+    - port: {{ .Values.service.peer.port }}
+      targetPort: {{ .Values.service.peer.port }}
       protocol: UDP
-      name: peer-udp
+      name: udp-peer
   selector:
     {{- include "transmission.selectorLabels" . | nindent 4 }}

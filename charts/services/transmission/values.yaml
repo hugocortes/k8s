@@ -33,6 +33,7 @@ service:
     annotations: {}
     type: LoadBalancer
     loadBalancerIP: ""
+    port: 54949
 
 resources: {}
   # limits:
