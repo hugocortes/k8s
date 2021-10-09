@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "calibre-server.fullname" . }}
   namespace: {{ .Release.Namespace }}
@@ -7,11 +7,10 @@ metadata:
     {{- include "calibre-server.labels" . | nindent 4 }}
 spec:
   replicas: 1 # prevent db file overwrites...
-  strategy:
-    type: Recreate
   selector:
     matchLabels:
       {{- include "calibre-server.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "calibre-server.fullname" . }}
   template:
     metadata:
       labels:
@@ -39,7 +38,6 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
-              subPath: server
             - name: library
               mountPath: /books
           ports:

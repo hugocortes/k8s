@@ -1,23 +1,23 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: {{ include "sabnzbd.fullname" . }}
+  name: {{ include "tautulli.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "sabnzbd.labels" . | nindent 4 }}
+    {{- include "tautulli.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 1 # sqlite requires lock mounting
   selector:
     matchLabels:
-      {{- include "sabnzbd.selectorLabels" . | nindent 6 }}
+      {{- include "tautulli.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "tautulli.fullname" . }}
   template:
     metadata:
       labels:
-        {{- include "sabnzbd.selectorLabels" . | nindent 8 }}
+        {{- include "tautulli.selectorLabels" . | nindent 8 }}
     spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      serviceAccountName: {{ include "sabnzbd.serviceAccountName" . }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -25,40 +25,42 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: CONTAINER_TIMEZONE
+          {{- if .Values.config.timezone }}
+            - name: TZ
               value: {{ .Values.config.timezone }}
+          {{- end }}
           volumeMounts:
-            - name: config
+            - name: conf
               mountPath: /config
-            - name: downloads
-              mountPath: /downloads
-              subPath: complete
-            - name: downloads
-              mountPath: /incomplete-downloads
-              subPath: incomplete
+            - name: plex-logs
+              mountPath: /tautulli_logs
+              readOnly: true
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 8181
               protocol: TCP
           livenessProbe:
-            initialDelaySeconds: 15
-            periodSeconds: 5
-            tcpSocket:
+            initialDelaySeconds: 120
+            periodSeconds: 15
+            failureThreshold: 4
+            httpGet:
+              path: /
               port: http
           readinessProbe:
-            initialDelaySeconds: 15
-            periodSeconds: 5
-            tcpSocket:
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            httpGet:
+              path: /
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - name: config
+        - name: conf
           persistentVolumeClaim:
             claimName: {{ .Values.persistence.existingClaim }}
-        - name: downloads
+        - name: plex-logs
           persistentVolumeClaim:
-            claimName: {{ .Values.persistence.existingDownloadsClaim }}
+            claimName: {{ .Values.persistence.existingPlexLogsClaim }}
     {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

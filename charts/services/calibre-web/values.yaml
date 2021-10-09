@@ -49,13 +49,3 @@ config:
   puid: "911"
   pgid: "911"
   timezone: America/Los_Angeles
-
-nfs:
-  syncInterval: "890"
-  resources: {}
-    # limits:
-    #   cpu: 50m
-    #   memory: 75Mi
-    # requests:
-    #   cpu: 50m
-    #   memory: 75Mi

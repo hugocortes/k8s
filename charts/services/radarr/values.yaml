@@ -42,13 +42,3 @@ config:
 env: []
   # - name: TZ
   #   value: America/Los_Angeles
-
-nfs:
-  syncInterval: "890"
-  resources: {}
-    # limits:
-    #   cpu: 50m
-    #   memory: 75Mi
-    # requests:
-    #   cpu: 50m
-    #   memory: 75Mi
