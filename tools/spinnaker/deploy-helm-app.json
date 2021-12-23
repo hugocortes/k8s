@@ -36,6 +36,12 @@
     },
     {
       "type": "string",
+      "name": "istioInjection",
+      "description": "whether istio injection should be enabled or disabled",
+      "defaultValue": "enabled"
+    },
+    {
+      "type": "string",
       "name": "skipDockerJudgement",
       "description": "whether judgement can be skipped for automated docker trigger",
       "defaultValue": "false"
@@ -331,7 +337,8 @@
           "application": "${execution.application}",
           "artifacts": "${templateVariables.gcsArtifacts}",
           "cluster": "${templateVariables.kubernetesCluster}",
-          "namespace": "${templateVariables.kubernetesNamespace}"
+          "namespace": "${templateVariables.kubernetesNamespace}",
+          "istioInjection": "${templateVariables.istioInjection}"
         },
         "refId": "4",
         "requisiteStageRefIds": [
