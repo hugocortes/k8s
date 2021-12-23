@@ -39,12 +39,12 @@ spec:
               containerPort: 9117
               protocol: TCP
           livenessProbe:
-            initialDelaySeconds: 15
+            initialDelaySeconds: 210
             periodSeconds: 5
             tcpSocket:
               port: http
           readinessProbe:
-            initialDelaySeconds: 15
+            initialDelaySeconds: 210
             periodSeconds: 5
             tcpSocket:
               port: http
