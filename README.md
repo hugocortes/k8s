@@ -1,11 +1,13 @@
 # k8s
-personal bare-metal kubernetes setup. 
+
+personal bare-metal kubernetes setup.
 
 This setup is aimed at getting a cluster up and running with Spinnaker. Once Spinnaker is configured, additional applications should be installed by creating Spinnaker pipelines.
 
 # install
 
 1. install kubernetes using [kubespray](https://github.com/kubernetes-sigs/kubespray):
+
 ```sh
 git clone git@github.com:kubernetes-sigs/kubespray.git
 cd kubespray/
@@ -23,9 +25,11 @@ ansible-playbook -i path/to/inventory/inventory.ini cluster.yml -b
 # k8s config location in master node
 cat /etc/kubernetes/admin.conf
 ```
+
 2. (optional) grouping k8s resources into spinnaker applications
 
 Adding `moniker.spinnaker.io/application` annotation will group the resource into applications.
+
 ```sh
 SPINNAKER_ANNOTATION=kubernetes-dns
 kubectl patch daemonset nodelocaldns --namespace kube-system --patch "{\"metadata\":{\"annotations\": {\"moniker.spinnaker.io/application\": \"$SPINNAKER_ANNOTATION\" }}},{\"spec\":{\"template\":{\"metadata\":{\"annotations\": {\"moniker.spinnaker.io/application\": \"$SPINNAKER_ANNOTATION\" }}}}}" && \
@@ -45,7 +49,9 @@ kubectl patch daemonset calico-node --namespace kube-system --patch "{\"metadata
   kubectl patch deployment calico-kube-controllers --namespace kube-system --patch "{\"metadata\":{\"annotations\": {\"moniker.spinnaker.io/application\": \"$SPINNAKER_ANNOTATION\" }},\"spec\":{\"template\":{\"metadata\":{\"annotations\": {\"moniker.spinnaker.io/application\": \"$SPINNAKER_ANNOTATION\" }}}}}"
 
 ```
+
 3. (optional) taint k8s nodes for dedicated use
+
 ```sh
 # taint and label vpn node
 kubectl taint node <WORKER NODE> ops/dedicated=vpn:NoSchedule
@@ -56,7 +62,9 @@ kubectl label node <WORKER NODE> ops/dedicated=ram
 # label distro nodes
 kubectl label node <WORKER NODE> ops/distro=ubuntu
 ```
-3. install [istio](https://istio.io/latest/docs/setup/install/istioctl/)
+
+4. install [istio](https://istio.io/latest/docs/setup/install/istioctl/)
+
 ```sh
 kubectl create namespace istio-system
 
@@ -68,7 +76,9 @@ NAMESPACE=""
 kubectl create namespace $NAMESPACE && \
   kubectl label namespace $NAMESPACE istio-injection=enabled
 ```
-4. install nfs provisioner (requires configured NFS server)
+
+5. install nfs provisioner (requires configured NFS server)
+
 ```sh
 # requires nfs-common on all nodes!
 sudo apt-get install -y nfs-common
@@ -79,30 +89,70 @@ SPINNAKER_ANNOTATION=nfs-subdir-external-provisioner
 NFS_HOST=
 NFS_PATH=
 helm install --namespace storage \
-  -f services/nfs-subdir-external-provisioner/values.yaml \
+  -f services/$SPINNAKER_ANNOTATION/values.yaml \
   --set nfs.server=$NFS_HOST \
   --set nfs.path=$NFS_PATH \
-  nfs-subdir-external-provisioner \
-  nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
+  $SPINNAKER_ANNOTATION \
+  $SPINNAKER_ANNOTATION/$SPINNAKER_ANNOTATION
 
 kubectl patch deployment nfs-subdir-external-provisioner \
   --namespace kube-system \
   --patch "{\"metadata\":{\"annotations\": {\"moniker.spinnaker.io/application\": \"$SPINNAKER_ANNOTATION\" }},\"spec\":{\"template\":{\"metadata\":{\"annotations\": {\"moniker.spinnaker.io/application\": \"$SPINNAKER_ANNOTATION\" }}}}}"
 ```
-6. install spinnaker
+
+6. install longhorn
+
 ```sh
-https://cloud.google.com/storage/docs/reporting-changes
+# ensure partition is properly created on each applicable worker node
+sudo dnf install iscsi-initiator-utils
+sudo systemctl enable iscsid
+sudo systemctl start iscsid
+# find which is the new /dev
+parted -l
+parted /dev/sdb
+# has to be msdos
+(parted) mklabel msdos
+(parted) mkpart
+  > primary
+  > ext4
+  > 1
+  > X.YGB
+(parted) print
+# point to new partition
+mkfs.ext4 /dev/sdb1
+mkdir /media/storage
+blkid
+  > /dev/sdb1 UUID="UUID"
+nvim /etc/fstab
+# add
+  > UUID=UUID /media/storage ext4 defaults,noatime,nodiratime 0 2
+# verify
+mount -a
+
+# install on cluster
+kubectl create namespace longhorn-system
+
+helm install longhorn longhorn/longhorn \
+  -n longhorn-system \
+  -f common/longhorn/values.yaml \
+  -f CLUSTER/longhorn/values.yaml
+
+```
+
+7. install spinnaker
+
+```sh
+helm repo add spinnaker https://helmcharts.opsmx.com/
 
 SPIN_NAME=spin && \
 SPIN_NAMESPACE=spin-system && \
 SPIN_GCP_ACCOUNT=spinnaker && \
 SPIN_GCP_SECRET=spinnaker-gcp && \
-SPIN_GCP_JSON_KEY=key.json && \
 SPIN_GCP_JSON_FILE=$HOME/.gcloud/$SPIN_GCP_ACCOUNT.json && \
 SPIN_PUBSUB_SUBSCRIPTION=$(cat ./.spin-pubsub-subscription) && \
 SPIN_DOCKER_SECRET=spinnaker-docker && \
-SPIN_DOCKER_USER_FILE=./.spin-docker-user && \
-SPIN_DOCKER_PASS_FILE=./.spin-docker-pass && \
+SPIN_DOCKERHUB_HUGOCORTES_PASS_FILE=./.spin-dockerhub-hugocortes-pass && \
+SPIN_DOCKERHUB_HOMELABOPS_PASS_FILE=./.spin-dockerhub-homelabops-pass && \
 SPIN_KUBECONFIG_SECRET=spinnaker-kubeconfig && \
 SPIN_KUBECONFIG_FILE=./.spin-kubeconfig && \
 SPIN_GCP_PROJECT=$(gcloud info --format='value(config.project)')
@@ -110,21 +160,21 @@ SPIN_GCP_PROJECT=$(gcloud info --format='value(config.project)')
 # create service account
 ./scripts/create-service-account.sh $SPIN_GCP_ACCOUNT $HOME/.gcp/$SPIN_GCP_ACCOUNT.json
 
+# create ns
+kubectl create namespace $SPIN_NAMESPACE
+kubectl label namespace $SPIN_NAMESPACE istio-injection=enabled
+
 # create required secrets
 
 kubectl create secret generic $SPIN_GCP_SECRET \
   --namespace $SPIN_NAMESPACE \
-  --from-file=$SPIN_GCP_JSON_KEY=$SPIN_GCP_JSON_FILE
-
-# kubectl create secret docker-registry $SPIN_DOCKER_SECRET \
-#   --namespace $SPIN_NAMESPACE \
-#   --docker-server=https://index.docker.io/v1/ \
-#   --docker-username=$(cat $SPIN_DOCKER_USER_FILE) \
-#   --docker-password=$(cat $SPIN_DOCKER_PASS_FILE)
+  --from-file=key.json=$SPIN_GCP_JSON_FILE
 
 kubectl create secret generic $SPIN_DOCKER_SECRET \
   --namespace $SPIN_NAMESPACE \
-  --from-file=dockerhub=$SPIN_DOCKER_PASS_FILE
+  --from-file=dockerhub=$SPIN_DOCKERHUB_HUGOCORTES_PASS_FILE \
+  --from-file=dockerhub-hugocortes=$SPIN_DOCKERHUB_HUGOCORTES_PASS_FILE \
+  --from-file=dockerhub-homelabops=$SPIN_DOCKERHUB_HOMELABOPS_PASS_FILE
 
 kubectl create secret generic $SPIN_KUBECONFIG_SECRET \
   --namespace $SPIN_NAMESPACE \
@@ -158,7 +208,7 @@ helm install --namespace $SPIN_NAMESPACE \
   --set kubeConfig.secretName=$SPIN_KUBECONFIG_SECRET \
   --timeout 15m \
   $SPIN_NAME \
-  stable/spinnaker
+  spinnaker/spinnaker
 
 # hal configuration
 # https://www.spinnaker.io/reference/halyard/commands/
@@ -166,6 +216,7 @@ kubectl exec --namespace $SPIN_NAMESPACE -it spinnaker-spinnaker-halyard-0 bash
 ```
 
 add prometheus annotations and ports to deployment:
+
 ```sh
 # add metrics port to service (required for istio service discovery)
 kubectl patch service $SPIN_NAME-clouddriver --namespace $SPIN_NAMESPACE --patch '{"spec":{"ports":[{"name":"app","port":7002,"protocol":"TCP","targetPort":7002},{"name":"metrics","port":8008,"protocol":"TCP","targetPort":8008}]}}' && \
