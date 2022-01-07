@@ -65,14 +65,14 @@ spec:
               protocol: TCP 
           livenessProbe:
             failureThreshold: 6
-            initialDelaySeconds: 90
+            initialDelaySeconds: 180
             periodSeconds: 10
             httpGet:
               path: /identity
               port: media-server
           readinessProbe:
             failureThreshold: 6
-            initialDelaySeconds: 90
+            initialDelaySeconds: 15
             periodSeconds: 10
             httpGet:
               path: /identity
