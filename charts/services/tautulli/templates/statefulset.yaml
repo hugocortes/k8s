@@ -40,7 +40,7 @@ spec:
               containerPort: 8181
               protocol: TCP
           livenessProbe:
-            initialDelaySeconds: 180
+            initialDelaySeconds: 300
             periodSeconds: 15
             failureThreshold: 4
             httpGet:

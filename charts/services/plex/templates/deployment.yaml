@@ -65,7 +65,7 @@ spec:
               protocol: TCP 
           livenessProbe:
             failureThreshold: 6
-            initialDelaySeconds: 180
+            initialDelaySeconds: 300
             periodSeconds: 10
             httpGet:
               path: /identity
