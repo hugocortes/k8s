@@ -406,10 +406,8 @@
         "name": "deploy app",
         "pipeline": "70645b28-289f-40ba-976b-dd533a8987cb",
         "pipelineParameters": {
-          "application": "${execution.application}",
           "cluster": "${templateVariables.kubernetesCluster}",
           "namespace": "${templateVariables.kubernetesNamespace}",
-          "pipelineTrigger": "${trigger.parentExecution.trigger}",
           "skipJudgement": "${templateVariables.skipDockerJudgement}"
         },
         "refId": "6",
