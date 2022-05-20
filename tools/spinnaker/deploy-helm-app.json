@@ -141,13 +141,6 @@
       "name": "gcsArtifacts",
       "description": "additional dependencies required for application that have been uploaded to gcs",
       "defaultValue": []
-    },
-
-    {
-      "type": "string",
-      "name": "skipDockerJudgement",
-      "description": "whether judgement can be skipped for automated triggers (DEPRECATED)",
-      "defaultValue": "false"
     }
   ],
   "pipeline": {
