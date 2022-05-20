@@ -18,8 +18,20 @@
     },
     {
       "type": "boolean",
+      "name": "pubSubVerificationRequired",
+      "description": "whether pub sub trigger verification is required before deployment",
+      "defaultValue": false
+    },
+    {
+      "type": "boolean",
       "name": "enableDockerTrigger",
       "description": "whether docker trigger should be enabled",
+      "defaultValue": false
+    },
+    {
+      "type": "boolean",
+      "name": "dockerVerificationRequired",
+      "description": "whether docker trigger verification is required before deployment",
       "defaultValue": false
     },
     {
@@ -29,22 +41,10 @@
       "defaultValue": false
     },
     {
-      "type": "boolean",
-      "name": "deployApp",
-      "description": "whether app should be deployed",
-      "defaultValue": true
-    },
-    {
       "type": "string",
       "name": "istioInjection",
       "description": "whether istio injection should be enabled or disabled",
       "defaultValue": "enabled"
-    },
-    {
-      "type": "string",
-      "name": "skipDockerJudgement",
-      "description": "whether judgement can be skipped for automated docker trigger",
-      "defaultValue": "false"
     },
     {
       "type": "string",
@@ -141,6 +141,13 @@
       "name": "gcsArtifacts",
       "description": "additional dependencies required for application that have been uploaded to gcs",
       "defaultValue": []
+    },
+
+    {
+      "type": "string",
+      "name": "skipDockerJudgement",
+      "description": "whether judgement can be skipped for automated triggers (DEPRECATED)",
+      "defaultValue": "false"
     }
   ],
   "pipeline": {
@@ -257,7 +264,7 @@
     "stages": [
       {
         "failOnFailedExpressions": true,
-        "name": "env-template",
+        "name": "env",
         "refId": "1",
         "requisiteStageRefIds": [],
         "type": "evaluateVariables",
@@ -273,12 +280,16 @@
           {
             "key": "helmDockerIncludesRepo",
             "value": "${templateVariables.helmImageKeyIncludesRepo}"
+          },
+          {
+            "key": "ctxTrigger",
+            "value": "${ (trigger.type == \"manual\" || trigger.type == \"pubsub\" ? execution : trigger.parentExecution).trigger }"
           }
         ]
       },
       {
         "failOnFailedExpressions": true,
-        "name": "env",
+        "name": "set ctxTrigger friendly names",
         "refId": "2",
         "requisiteStageRefIds": [
           "1"
@@ -286,47 +297,48 @@
         "type": "evaluateVariables",
         "variables": [
           {
-            "key": "helmImage",
-            "value": "${#toBoolean(#stage('env-template').outputs.helmDockerIncludesRepo) ? #stage('env-template').outputs.helmDockerRepo : #stage('env-template').outputs.helmDockerTag}"
-          },
-          {
-            "key": "isDockerTrigger",
-            "value": "${trigger.parentExecution != null ? trigger.parentExecution.trigger.type == \"docker\" : false}"
+            "key": "triggerType",
+            "value": "${ctxTrigger.type}"
           }
         ]
       },
       {
-        "name": "if docker deploy is enabled",
-        "notifications": [
-          {
-            "address": "contact@hugocortes.dev",
-            "level": "stage",
-            "message": {
-              "stage.failed": {
-                "text": "retrieved new docker image but not deploying!\n<br>\nimage: ${trigger.parentExecution.trigger.artifacts.?[type==\"docker/image\"][0].name}\n<br>\ntag: <b>${trigger.parentExecution.trigger.artifacts.?[type==\"docker/image\"][0].version}</b>\n<br>"
-              }
-            },
-            "type": "email",
-            "when": [
-              "stage.failed"
-            ]
-          }
-        ],
-        "preconditions": [
-          {
-            "context": {
-              "expression": "!(#stage('env').outputs.isDockerTrigger && trigger.type==\"pipeline\" && !${templateVariables.enableDockerTrigger})"
-            },
-            "failPipeline": true,
-            "type": "expression"
-          }
-        ],
+        "failOnFailedExpressions": true,
+        "name": "set trigger verification types",
         "refId": "3",
         "requisiteStageRefIds": [
           "2"
         ],
-        "sendNotifications": true,
-        "type": "checkPreconditions"
+        "type": "evaluateVariables",
+        "variables": [
+          {
+            "key": "dockerVerificationRequired",
+            "value": "${'${'} triggerType == \"docker\" && ${ templateVariables.dockerVerificationRequired } }"
+          },
+          {
+            "key": "pubSubVerificationRequired",
+            "value": "${'${'} triggerType == \"pubsub\" && ${ templateVariables.pubSubVerificationRequired } }"
+          },
+          {
+            "key": "manualVerificationRequired",
+            "value": "${'${'} triggerType == \"manual\" && false }"
+          }
+        ]
+      },
+      {
+        "failOnFailedExpressions": true,
+        "name": "set verificationRequired",
+        "refId": "4",
+        "requisiteStageRefIds": [
+          "3"
+        ],
+        "type": "evaluateVariables",
+        "variables": [
+          {
+            "key": "verificationRequired",
+            "value": "${'${'} dockerVerificationRequired || pubSubVerificationRequired || manualVerificationRequired || ${ templateVariables.skipDockerJudgement != \"true\" } }"
+          }
+        ]
       },
       {
         "application": "terraform",
@@ -340,9 +352,9 @@
           "namespace": "${templateVariables.kubernetesNamespace}",
           "istioInjection": "${templateVariables.istioInjection}"
         },
-        "refId": "4",
+        "refId": "5",
         "requisiteStageRefIds": [
-          "3"
+          "4"
         ],
         "stageEnabled": {
           "expression": "${templateVariables.deployDeps} || parameters.deps == \"true\"",
@@ -391,11 +403,11 @@
         "namespace": "${templateVariables.kubernetesNamespace}",
         "outputName": "${templateVariables.helmInstallationName}",
         "overrides": {
-          "${templateVariables.helmImageKey}": "${#stage('env').outputs.helmImage}"
+          "${templateVariables.helmImageKey}": "${#toBoolean(helmDockerIncludesRepo) ? helmDockerRepo : helmDockerTag}"
         },
-        "refId": "5",
+        "refId": "6",
         "requisiteStageRefIds": [
-          "3"
+          "4"
         ],
         "templateRenderer": "HELM3",
         "type": "bakeManifest"
@@ -407,18 +419,12 @@
         "pipeline": "70645b28-289f-40ba-976b-dd533a8987cb",
         "pipelineParameters": {
           "cluster": "${templateVariables.kubernetesCluster}",
-          "namespace": "${templateVariables.kubernetesNamespace}",
-          "skipJudgement": "${templateVariables.skipDockerJudgement}"
+          "verificationRequired": "${'${'} verificationRequired }"
         },
-        "refId": "6",
+        "refId": "7",
         "requisiteStageRefIds": [
-          "5",
-          "4"
+          "6"
         ],
-        "stageEnabled": {
-          "expression": "${templateVariables.deployApp} && parameters.deploy == \"true\"",
-          "type": "expression"
-        },
         "type": "pipeline",
         "waitForCompletion": true
       }
