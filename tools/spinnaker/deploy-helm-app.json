@@ -423,7 +423,8 @@
         },
         "refId": "7",
         "requisiteStageRefIds": [
-          "6"
+          "6",
+          "5"
         ],
         "type": "pipeline",
         "waitForCompletion": true
