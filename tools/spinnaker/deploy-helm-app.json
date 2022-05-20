@@ -329,7 +329,7 @@
         "variables": [
           {
             "key": "verificationRequired",
-            "value": "${'${'} dockerVerificationRequired || pubSubVerificationRequired || manualVerificationRequired || ${ templateVariables.skipDockerJudgement != \"true\" } }"
+            "value": "${'${'} dockerVerificationRequired || pubSubVerificationRequired || manualVerificationRequired }"
           }
         ]
       },
