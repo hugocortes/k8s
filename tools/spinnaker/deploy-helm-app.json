@@ -189,11 +189,11 @@
     "notifications": [],
     "parameterConfig": [
       {
-        "default": "true",
-        "description": "whether app should be deployed",
+        "default": "false",
+        "description": "whether deployment requires verification",
         "hasOptions": true,
-        "label": "deploy",
-        "name": "deploy",
+        "label": "verificationRequired",
+        "name": "verificationRequired",
         "options": [
           {
             "value": "true"
@@ -226,7 +226,7 @@
     "triggers": [
       {
         "application": "${templateVariables.registryApplication}",
-        "enabled": true,
+        "enabled": "${templateVariables.enableDockerTrigger}",
         "expectedArtifactIds": [
           "artifact-${templateVariables.registryRepository}-${templateVariables.registryImage}",
           "artifact-${templateVariables.helmChartName}-values"
@@ -329,7 +329,7 @@
         "variables": [
           {
             "key": "verificationRequired",
-            "value": "${'${'} dockerVerificationRequired || pubSubVerificationRequired || manualVerificationRequired }"
+            "value": "${'${'} dockerVerificationRequired || pubSubVerificationRequired || manualVerificationRequired || parameters.verificationRequired == \"true\" }"
           }
         ]
       },

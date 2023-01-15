@@ -260,96 +260,23 @@
         "type": "pipeline",
         "waitForCompletion": true
       },
-
       {
-        "completeOtherBranchesThenFail": false,
-        "continuePipeline": false,
-        "failPipeline": false,
-        "name": "if helm namespace override on deploy",
-        "preconditions": [
-          {
-            "context": {
-              "expression": "${templateVariables.enableHelmNamespaceOverride}"
-            },
-            "failPipeline": false,
-            "type": "expression"
-          }
-        ],
+        "application": "terraform",
+        "failPipeline": true,
+        "name": "deploy app",
+        "pipeline": "70645b28-289f-40ba-976b-dd533a8987cb",
+        "pipelineParameters": {
+          "cluster": "${templateVariables.kubernetesCluster}",
+          "namespaceOverride": "${templateVariables.enableHelmNamespaceOverride == true ? \"true\" : \"false\" }",
+          "verificationRequired": "false"
+        },
         "refId": "3",
         "requisiteStageRefIds": [
-          "1",
-          "2"
+          "2",
+          "1"
         ],
-        "type": "checkPreconditions"
-      },
-      {
-        "account": "${templateVariables.kubernetesCluster}",
-        "cloudProvider": "kubernetes",
-        "manifestArtifactAccount": "embedded-artifact",
-        "manifestArtifactId": "artifact-${templateVariables.helmChartName}-rendered",
-        "moniker": {
-          "app": "${execution.application}"
-        },
-        "name": "deploy helm chart",
-        "namespaceOverride": "${templateVariables.kubernetesNamespace}",
-        "refId": "4",
-        "requisiteStageRefIds": [
-          "3"
-        ],
-        "skipExpressionEvaluation": true,
-        "source": "artifact",
-        "trafficManagement": {
-          "enabled": false,
-          "options": {
-            "enableTraffic": false
-          }
-        },
-        "type": "deployManifest"
-      },
-
-      {
-        "completeOtherBranchesThenFail": false,
-        "continuePipeline": false,
-        "failPipeline": false,
-        "name": "if not helm namespace override on deploy",
-        "preconditions": [
-          {
-            "context": {
-              "expression": "!${templateVariables.enableHelmNamespaceOverride}"
-            },
-            "failPipeline": false,
-            "type": "expression"
-          }
-        ],
-        "refId": "5",
-        "requisiteStageRefIds": [
-          "1",
-          "2"
-        ],
-        "type": "checkPreconditions"
-      },
-      {
-        "account": "${templateVariables.kubernetesCluster}",
-        "cloudProvider": "kubernetes",
-        "manifestArtifactAccount": "embedded-artifact",
-        "manifestArtifactId": "artifact-${templateVariables.helmChartName}-rendered",
-        "moniker": {
-          "app": "${execution.application}"
-        },
-        "name": "deploy helm chart",
-        "refId": "6",
-        "requisiteStageRefIds": [
-          "5"
-        ],
-        "skipExpressionEvaluation": true,
-        "source": "artifact",
-        "trafficManagement": {
-          "enabled": false,
-          "options": {
-            "enableTraffic": false
-          }
-        },
-        "type": "deployManifest"
+        "type": "pipeline",
+        "waitForCompletion": true
       }
     ]
   }
