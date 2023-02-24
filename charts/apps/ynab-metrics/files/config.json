@@ -1,6 +1,0 @@
-{
-  "port": {{ .Values.service.port | quote }},
-  "include_transactions": false,
-  "access_token": {{ .Values.config.accessToken | quote }},
-  "interval_seconds": {{ .Values.config.interval }}
-}
